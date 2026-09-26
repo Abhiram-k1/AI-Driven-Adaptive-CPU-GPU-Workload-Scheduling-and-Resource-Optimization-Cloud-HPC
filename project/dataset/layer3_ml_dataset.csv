@@ -1,2 +1,9 @@
 workload,input_file,input_size_mib,workload_type,workload_domain,estimated_parallelism,estimated_memory_boundness,estimated_compute_intensity,has_irregular_memory,has_strong_serial_dependency,estimated_transfer_size_mib,transfer_estimation_method,cpu_cores_available,gpu_type_encoded,gpu_memory_gb,preferred_device,target_label
-cfd,fvcorr.domn.193K,43.54428,iterative_solver,fluid_dynamics,5,4,4,0,0,43.54428,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+bfs,graph1MW_6.txt,61.22502,graph,graph_traversal,3,5,1,1,1,61.22502,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+bfs,graph4096.txt,0.04908,graph,graph_traversal,3,5,1,1,1,0.04908,source_buffer_analysis,4,Tesla_T4,16.0,cpu,0
+cfd,fvcorr.domn.193K,43.54465,iterative_solver,fluid_dynamics,5,4,4,0,0,43.54465,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+hotspot,temp_512,2.75,structured_grid,thermal_simulation,4,3,3,0,0,2.75,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+kmeans,819200.txt,96.98405,dense_clustering,data_mining,5,3,3,0,0,96.98405,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+lud,512.dat,2.47588,matrix_decomposition,linear_algebra,4,2,5,0,1,2.47588,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1
+nn,cane4_0.db,0.49959,distance_calculation,data_mining,5,4,2,0,0,0.49959,source_buffer_analysis,4,Tesla_T4,16.0,cpu,0
+srad,image.pgm,0.75309,structured_grid,image_processing,4,3,3,0,0,0.75309,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1

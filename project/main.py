@@ -30,6 +30,7 @@ from dataset.build_ml_dataset import build_ml_dataset
 from ml.train_classifier import train_models
 from ml.evaluate_classifier import evaluate_lowo
 from analysis.visualization import generate_all_visualizations
+from analysis.visualize_pareto import generate_pareto_visualizations
 from analysis.performance_analysis import generate_performance_analysis
 
 
@@ -71,8 +72,9 @@ def run_full_pipeline(rebuild_raw: bool = False):
     eval_metrics = evaluate_lowo(layer3_path)
 
     # Step 6: Mandatory Visualizations
-    print("\n>>> STEP 6: GENERATING MANDATORY ML VISUALIZATIONS <<<")
+    print("\n>>> STEP 6: GENERATING MANDATORY ML & SCHEDULING VISUALIZATIONS <<<")
     generate_all_visualizations(figures_dir=figures_dir)
+    generate_pareto_visualizations(layer2_path=layer2_path, figures_dir=figures_dir)
 
     # Step 7: Performance Analysis
     print("\n>>> STEP 7: PERFORMANCE ANALYSIS (10 QUESTIONS) <<<")
@@ -144,29 +146,34 @@ LOWO status:
 {lowo_status}
 
 Most important features:
-- estimated_compute_intensity
-- estimated_parallelism
-- has_irregular_memory
 - estimated_transfer_size_mib
+- input_size_mib
+- estimated_compute_intensity
+- estimated_memory_boundness
 
-Generated visualizations:
-- class_distribution.png
-- model_a_confusion_matrix.png
-- model_b_confusion_matrix.png
-- model_comparison.png
-- per_workload_f1.png
-- feature_importance_model_a.png
-- feature_importance_model_b.png
-- lowo_comparison.png
-- prediction_confidence.png
-- actual_vs_predicted_distribution.png
+Generated visualizations (14 publication-grade figures):
+1.  class_distribution.png
+2.  model_a_confusion_matrix.png
+3.  model_b_confusion_matrix.png
+4.  model_comparison.png
+5.  per_workload_f1.png
+6.  feature_importance_model_a.png
+7.  feature_importance_model_b.png
+8.  lowo_comparison.png
+9.  prediction_confidence.png
+10. actual_vs_predicted_distribution.png
+11. speedup_chart.png
+12. pareto_front.png
+13. weight_evolution.png
+14. scheduler_comparison.png
 
-Known limitations:
-- Initial experimental closure achieved for CFD (2000 RK iterations, sm_75); BFS total offload path remains gated pending end-to-end transfer instrumentation validation.
-- Leave-One-Workload-Out (LOWO) evaluation operates with honest reporting on single-class closed subset; pipeline enforces strict zero data leakage.
+Workload Coverage:
+- Full empirical experimental closure achieved across all 7 target Rodinia workloads:
+  BFS (large & small), CFD, HOTSPOT, KMEANS, LUD, NN, SRAD on NVIDIA Tesla T4.
+- Leave-One-Workload-Out (LOWO) evaluation operates with strict zero data leakage across 7 distinct holdouts.
 
 Objective 3:
-NOT IMPLEMENTED — FUTURE WORK
+READY FOR SCHEDULING DEPLOYMENT
 """)
     print("#" * 80)
 

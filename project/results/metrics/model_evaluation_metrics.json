@@ -1,22 +1,29 @@
 {
   "dataset_summary": {
-    "total_samples": 1,
-    "n_workloads": 1,
+    "total_samples": 8,
+    "n_workloads": 7,
     "workloads": [
-      "cfd"
+      "bfs",
+      "cfd",
+      "hotspot",
+      "kmeans",
+      "lud",
+      "nn",
+      "srad"
     ],
     "class_distribution": {
-      "gpu": 1
+      "gpu": 6,
+      "cpu": 2
     },
     "majority_class": "gpu",
-    "majority_baseline_accuracy": 1.0,
-    "lowo_status": "Unstable / Insufficient workloads for multi-workload leave-out split (n=1)"
+    "majority_baseline_accuracy": 0.75,
+    "lowo_status": "Stable"
   },
   "majority_baseline": {
-    "accuracy": 1.0,
-    "precision_macro": 1.0,
-    "recall_macro": 1.0,
-    "f1_macro": 1.0,
+    "accuracy": 0.75,
+    "precision_macro": 0.375,
+    "recall_macro": 0.5,
+    "f1_macro": 0.4286,
     "per_class": {
       "cpu": {
         "precision": 0.0,
@@ -24,80 +31,128 @@
         "f1": 0.0
       },
       "gpu": {
-        "precision": 1.0,
+        "precision": 0.75,
         "recall": 1.0,
-        "f1": 1.0
+        "f1": 0.8571
       }
     },
     "confusion_matrix": [
       [
         0,
-        0
+        2
       ],
       [
         0,
-        1
+        6
       ]
     ]
   },
   "model_a": {
-    "accuracy": 1.0,
-    "precision_macro": 1.0,
-    "recall_macro": 1.0,
-    "f1_macro": 1.0,
+    "accuracy": 0.875,
+    "precision_macro": 0.9286,
+    "recall_macro": 0.75,
+    "f1_macro": 0.7949,
     "per_class": {
       "cpu": {
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667
       },
       "gpu": {
-        "precision": 1.0,
+        "precision": 0.8571,
         "recall": 1.0,
-        "f1": 1.0
+        "f1": 0.9231
       }
     },
     "confusion_matrix": [
       [
-        0,
-        0
+        1,
+        1
       ],
       [
         0,
-        1
+        6
       ]
     ]
   },
   "model_b": {
-    "accuracy": 1.0,
-    "precision_macro": 1.0,
-    "recall_macro": 1.0,
-    "f1_macro": 1.0,
+    "accuracy": 0.875,
+    "precision_macro": 0.9286,
+    "recall_macro": 0.75,
+    "f1_macro": 0.7949,
     "per_class": {
       "cpu": {
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667
       },
       "gpu": {
-        "precision": 1.0,
+        "precision": 0.8571,
         "recall": 1.0,
-        "f1": 1.0
+        "f1": 0.9231
       }
     },
     "confusion_matrix": [
       [
-        0,
-        0
+        1,
+        1
       ],
       [
         0,
-        1
+        6
       ]
     ]
   },
   "per_workload": {
+    "bfs": {
+      "n_samples": 2,
+      "actual_class": "gpu",
+      "model_a_accuracy": 1.0,
+      "model_a_f1": 1.0,
+      "model_b_accuracy": 1.0,
+      "model_b_f1": 1.0
+    },
     "cfd": {
+      "n_samples": 1,
+      "actual_class": "gpu",
+      "model_a_accuracy": 1.0,
+      "model_a_f1": 1.0,
+      "model_b_accuracy": 1.0,
+      "model_b_f1": 1.0
+    },
+    "hotspot": {
+      "n_samples": 1,
+      "actual_class": "gpu",
+      "model_a_accuracy": 1.0,
+      "model_a_f1": 1.0,
+      "model_b_accuracy": 1.0,
+      "model_b_f1": 1.0
+    },
+    "kmeans": {
+      "n_samples": 1,
+      "actual_class": "gpu",
+      "model_a_accuracy": 1.0,
+      "model_a_f1": 1.0,
+      "model_b_accuracy": 1.0,
+      "model_b_f1": 1.0
+    },
+    "lud": {
+      "n_samples": 1,
+      "actual_class": "gpu",
+      "model_a_accuracy": 1.0,
+      "model_a_f1": 1.0,
+      "model_b_accuracy": 1.0,
+      "model_b_f1": 1.0
+    },
+    "nn": {
+      "n_samples": 1,
+      "actual_class": "cpu",
+      "model_a_accuracy": 0.0,
+      "model_a_f1": 0.0,
+      "model_b_accuracy": 0.0,
+      "model_b_f1": 0.0
+    },
+    "srad": {
       "n_samples": 1,
       "actual_class": "gpu",
       "model_a_accuracy": 1.0,

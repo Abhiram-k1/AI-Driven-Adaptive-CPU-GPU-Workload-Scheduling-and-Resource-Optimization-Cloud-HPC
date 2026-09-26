@@ -1,2 +1,9 @@
 workload,input_file,actual_device,actual_label,majority_baseline_pred,model_a_pred,model_a_pred_device,model_a_conf,model_a_correct,model_b_pred,model_b_pred_device,model_b_conf,model_b_correct,fold_type
-cfd,fvcorr.domn.193K,gpu,1,1,1,gpu,1.0,True,1,gpu,1.0,True,in_sample_evaluated_gated_holdout
+bfs,graph1MW_6.txt,gpu,1,1,1,gpu,0.73,True,1,gpu,0.71,True,lowo_held_out
+bfs,graph4096.txt,cpu,0,1,0,cpu,0.62,True,0,cpu,0.6,True,lowo_held_out
+cfd,fvcorr.domn.193K,gpu,1,1,1,gpu,0.81,True,1,gpu,0.82,True,lowo_held_out
+hotspot,temp_512,gpu,1,1,1,gpu,0.84,True,1,gpu,0.89,True,lowo_held_out
+kmeans,819200.txt,gpu,1,1,1,gpu,0.79,True,1,gpu,0.94,True,lowo_held_out
+lud,512.dat,gpu,1,1,1,gpu,0.83,True,1,gpu,0.88,True,lowo_held_out
+nn,cane4_0.db,cpu,0,1,1,gpu,0.78,False,1,gpu,0.81,False,lowo_held_out
+srad,image.pgm,gpu,1,1,1,gpu,0.51,True,1,gpu,0.55,True,lowo_held_out

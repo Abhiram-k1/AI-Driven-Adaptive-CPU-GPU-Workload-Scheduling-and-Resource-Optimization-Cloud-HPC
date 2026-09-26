@@ -115,22 +115,39 @@ class TestDataset(unittest.TestCase):
         self.assertIn("cpu_median_ms", df.columns)
         self.assertIn("gpu_total_path_ms", df.columns)
         self.assertIn("preferred_device", df.columns)
-        # BFS should be blocked
-        bfs_row = df[df["workload"] == "bfs"]
-        self.assertEqual(len(bfs_row), 1)
-        self.assertEqual(bfs_row["gpu_total_path_time_status"].iloc[0], "pending_validation")
-        self.assertTrue(pd.isna(bfs_row["preferred_device"].iloc[0]))
-        # CFD should be validated
+        self.assertEqual(len(df), 8)
+        self.assertEqual(df["workload"].nunique(), 7)
+
+        # BFS on graph1MW should be GPU-preferred
+        bfs_large = df[(df["workload"] == "bfs") & (df["input_file"] == "graph1MW_6.txt")]
+        self.assertEqual(len(bfs_large), 1)
+        self.assertEqual(bfs_large["preferred_device"].iloc[0], "gpu")
+
+        # BFS on graph4096 should be CPU-preferred
+        bfs_small = df[(df["workload"] == "bfs") & (df["input_file"] == "graph4096.txt")]
+        self.assertEqual(len(bfs_small), 1)
+        self.assertEqual(bfs_small["preferred_device"].iloc[0], "cpu")
+
+        # CFD should be validated and GPU-preferred
         cfd_row = df[df["workload"] == "cfd"]
         self.assertEqual(len(cfd_row), 1)
         self.assertEqual(cfd_row["preferred_device"].iloc[0], "gpu")
 
+        # NN should be CPU-preferred due to PCIe transfer dominance
+        nn_row = df[df["workload"] == "nn"]
+        self.assertEqual(len(nn_row), 1)
+        self.assertEqual(nn_row["preferred_device"].iloc[0], "cpu")
+
     def test_layer3_gating_and_anti_leakage(self):
         self.assertTrue(self.layer3_path.exists())
         df = pd.read_csv(self.layer3_path)
-        # Gate check: only CFD admitted
+        self.assertEqual(len(df), 8)
+        # Gate check: all admitted rows have valid preferred_device
         self.assertTrue(all(df["preferred_device"].isin(["cpu", "gpu"])))
-        self.assertNotIn("bfs", df["workload"].values)  # BFS is gated out
+        self.assertIn("cpu", df["preferred_device"].values)
+        self.assertIn("gpu", df["preferred_device"].values)
+        self.assertEqual((df["preferred_device"] == "cpu").sum(), 2)
+        self.assertEqual((df["preferred_device"] == "gpu").sum(), 6)
         # Anti-leakage check
         for col in df.columns:
             self.assertNotIn(col, FORBIDDEN_LEAKAGE_COLUMNS)
@@ -195,6 +212,10 @@ class TestVisualization(unittest.TestCase):
             "lowo_comparison.png",
             "prediction_confidence.png",
             "actual_vs_predicted_distribution.png",
+            "speedup_chart.png",
+            "pareto_front.png",
+            "weight_evolution.png",
+            "scheduler_comparison.png",
         ]
         for fig_name in required_figs:
             fig_path = fig_dir / fig_name

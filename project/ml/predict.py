@@ -18,7 +18,16 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from ml.feature_schema import extract_pre_execution_features, MODEL_A_FEATURES, MODEL_B_FEATURES
 
+from ml.train_classifier import DeviceClassifierPipeline
+
 DEFAULT_MODELS_DIR = Path(__file__).resolve().parent.parent / "results" / "models"
+
+
+class _ModelUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if name == "DeviceClassifierPipeline":
+            return DeviceClassifierPipeline
+        return super().find_class(module, name)
 
 
 def load_model(model_type: str = "model_a", models_dir: Path = DEFAULT_MODELS_DIR):
@@ -27,7 +36,7 @@ def load_model(model_type: str = "model_a", models_dir: Path = DEFAULT_MODELS_DI
     if not model_file.exists():
         raise FileNotFoundError(f"Model file '{model_file}' not found. Run train_classifier.py first.")
     with open(model_file, "rb") as f:
-        return pickle.load(f)
+        return _ModelUnpickler(f).load()
 
 
 def predict_device(

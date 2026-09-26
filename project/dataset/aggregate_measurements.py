@@ -77,36 +77,40 @@ def aggregate_layer1_to_layer2(
         gpu_total_path_stats = calculate_run_statistics(gpu_total_path_vals)
         gpu_total_path_ms = gpu_total_path_stats["median"]
 
-        # Check total path status from source specifications
-        # For BFS, status is explicitly 'pending_validation' as mandated by Section 6
-        if workload == "bfs":
-            gpu_total_path_time_status = "pending_validation"
-            comparable_timing_ok = False
-            profiling_notes = (
-                "BFS candidate offload path (~18.72 ms) requires end-to-end instrumentation validation. "
-                "gpu_total_path_time_status='pending_validation'; preferred_device is null (gated)."
-            )
-        elif workload == "cfd":
+        # Check total path status from valid GPU and CPU runs
+        has_validated_gpu = (
+            len(gpu_valid) >= 6 and
+            all(s == "validated" for s in gpu_valid["gpu_total_path_time_status"]) and
+            gpu_total_path_ms is not None
+        )
+        has_valid_cpu = (len(cpu_valid) >= 6 and cpu_stats["median"] is not None)
+
+        if has_validated_gpu and has_valid_cpu:
             gpu_total_path_time_status = "validated"
             comparable_timing_ok = True
-            profiling_notes = (
-                "CFD experimental closure verified on Tesla T4; 2000 RK iteration timing comparability verified; "
-                f"CPU median={cpu_stats['median']:.2f} ms, GPU median={gpu_stats['median']:.2f} ms; "
-                f"speedup={cpu_stats['median']/gpu_stats['median']:.2f}x; preferred_device='gpu'."
-            )
-        else:
-            gpu_total_path_time_status = "unverified"
-            comparable_timing_ok = False
-            profiling_notes = "Workload configured; pending cluster profiling."
-
-        # Ground-truth label gate (Section 9)
-        if comparable_timing_ok and gpu_total_path_time_status == "validated" and cpu_stats["median"] is not None and gpu_total_path_ms is not None:
+            speedup = cpu_stats["median"] / gpu_total_path_ms
             if cpu_stats["median"] < gpu_total_path_ms:
                 preferred_device = "cpu"
             else:
                 preferred_device = "gpu"
-        else:
+            profiling_notes = (
+                f"{workload.upper()} execution closure verified on Tesla T4; "
+                f"CPU median={cpu_stats['median']:.2f} ms, GPU total path={gpu_total_path_ms:.2f} ms; "
+                f"speedup={speedup:.2f}x; preferred_device='{preferred_device}'."
+            )
+        elif workload == "bfs" and len(gpu_valid) == 0:
+            gpu_total_path_time_status = "pending_validation"
+            comparable_timing_ok = False
             preferred_device = None
+            profiling_notes = (
+                "BFS candidate offload path (~18.72 ms) requires end-to-end instrumentation validation. "
+                "gpu_total_path_time_status='pending_validation'; preferred_device is null (gated)."
+            )
+        else:
+            gpu_total_path_time_status = "unverified"
+            comparable_timing_ok = False
+            preferred_device = None
+            profiling_notes = "Workload configured; pending cluster profiling."
 
         row = {
             "workload": workload,
