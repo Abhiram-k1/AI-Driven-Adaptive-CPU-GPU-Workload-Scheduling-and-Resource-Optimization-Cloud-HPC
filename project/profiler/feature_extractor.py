@@ -91,7 +91,7 @@ def extract_features(raw_path: Path = RAW_CSV) -> pd.DataFrame:
 def save_features(feat: pd.DataFrame, out_path: Path = FEAT_CSV) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     feat.to_csv(out_path, index=False)
-    print(f"Features saved → {out_path}")
+    print(f"Features saved -> {out_path}")
     print(f"  Shape: {feat.shape}")
     print(f"  GPU-best: {feat['best_device_binary'].sum()} / {len(feat)}")
     print(feat[["workload", "cpu_mean", "gpu_mean", "speedup_ratio", "best_device"]].to_string(index=False))

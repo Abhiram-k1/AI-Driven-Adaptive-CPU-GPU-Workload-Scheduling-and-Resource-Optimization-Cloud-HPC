@@ -255,5 +255,5 @@ if __name__ == "__main__":
     for w in [(0.8, 0.1, 0.1), (0.33, 0.33, 0.34), (0.1, 0.1, 0.8)]:
         asgn = ws.solve(w)
         f1, f2, f3 = _compute_objectives(asgn, test_tasks)
-        print(f"  weights={w}  →  makespan={f1:.2f}s  energy={f2:.0f}J  transfer={f3:.3f}s")
+        print(f"  weights={w}  ->  makespan={f1:.2f}s  energy={f2:.0f}J  transfer={f3:.3f}s")
         print(f"  assignment: {asgn}")

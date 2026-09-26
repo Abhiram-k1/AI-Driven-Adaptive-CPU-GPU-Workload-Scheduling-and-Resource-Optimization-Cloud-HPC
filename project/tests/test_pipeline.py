@@ -223,5 +223,65 @@ class TestVisualization(unittest.TestCase):
             self.assertGreater(fig_path.stat().st_size, 1000, f"Figure '{fig_name}' appears empty!")
 
 
+class TestScheduler(unittest.TestCase):
+    """Scheduler module integration tests."""
+
+    def test_workload_predictor(self):
+        from ml.predict import WorkloadPredictor
+        wp = WorkloadPredictor("model_a")
+        pred_cfd = wp.predict({"input_size_mb": 43.5}, workload="cfd")
+        self.assertIn("device", pred_cfd)
+        self.assertEqual(pred_cfd["device"], "gpu")
+        self.assertGreater(pred_cfd["confidence"], 0.7)
+        self.assertIn("cpu_est_s", pred_cfd)
+        self.assertIn("gpu_est_s", pred_cfd)
+        self.assertIn("speedup_pred", pred_cfd)
+
+        pred_nn = wp.predict({"input_size_mb": 0.5}, workload="nn")
+        self.assertEqual(pred_nn["device"], "cpu")
+
+    def test_workload_dag(self):
+        from scheduler.dag_builder import WorkloadDAG
+        dag = WorkloadDAG()
+        dag.add_task("task_a", "hotspot", {"input_size_mb": 2.75})
+        dag.add_task("task_b", "cfd", {"input_size_mb": 43.5})
+        dag.add_dependency("task_a", "task_b")
+        dag.compute_priorities()
+
+        topo = dag.topological_order()
+        self.assertEqual(topo, ["task_a", "task_b"])
+
+        ready = dag.get_ready_tasks(completed=set())
+        self.assertEqual(ready, ["task_a"])
+
+        ready_next = dag.get_ready_tasks(completed={"task_a"})
+        self.assertEqual(ready_next, ["task_b"])
+
+    def test_multi_objective_scheduler(self):
+        from scheduler.multi_objective import WeightedSumScheduler
+        tasks = {
+            "t1": {"cpu_est_s": 2.0, "gpu_est_s": 0.2, "features": {"transfer_bytes_mb": 10}},
+            "t2": {"cpu_est_s": 0.05, "gpu_est_s": 0.1, "features": {"transfer_bytes_mb": 20}},
+        }
+        scheduler = WeightedSumScheduler(tasks, cpu_slots=4, gpu_slots=1)
+        asgn = scheduler.solve((0.5, 0.3, 0.2))
+        self.assertIn("t1", asgn)
+        self.assertIn("t2", asgn)
+        self.assertEqual(asgn["t1"], "gpu")
+        self.assertEqual(asgn["t2"], "cpu")
+
+    def test_adaptive_weight_controller(self):
+        from scheduler.adaptive_weights import AdaptiveWeightController
+        awc = AdaptiveWeightController()
+        w_init = awc.mean_weights()
+        self.assertAlmostEqual(sum(w_init), 1.0, places=3)
+
+        awc.update(makespan_cost=0.5, energy_cost=0.2, transfer_cost=2.5)
+        w_sample = awc.sample_weights()
+        self.assertEqual(len(w_sample), 3)
+        self.assertAlmostEqual(sum(w_sample), 1.0, places=3)
+
+
 if __name__ == "__main__":
     unittest.main()
+

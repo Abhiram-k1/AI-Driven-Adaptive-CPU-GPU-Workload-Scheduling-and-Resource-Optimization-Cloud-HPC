@@ -125,7 +125,7 @@ class AdaptiveWeightController:
     def summary(self) -> str:
         w = self.mean_weights()
         return (
-            f"Round {self._round} | α={self.alpha.round(2)} | "
+            f"Round {self._round} | alpha={self.alpha.round(2)} | "
             f"mean_w=(makespan={w[0]:.3f}, energy={w[1]:.3f}, transfer={w[2]:.3f})"
         )
 

@@ -126,7 +126,7 @@ def save_model(obj: dict, name: str) -> None:
     path = MODELS_DIR / f"{name}.pkl"
     with open(path, "wb") as f:
         pickle.dump(obj, f)
-    print(f"  Saved → {path}")
+    print(f"  Saved -> {path}")
 
 
 def main():

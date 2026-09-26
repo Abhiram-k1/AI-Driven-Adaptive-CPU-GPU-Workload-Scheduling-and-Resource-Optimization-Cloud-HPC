@@ -55,7 +55,7 @@ class WorkloadDAG:
         n_runs: int = 6,
     ) -> None:
         """Add a task node with ML-predicted scheduling metadata."""
-        prediction = self.predictor.predict(features)
+        prediction = self.predictor.predict(features, workload=workload)
         self.G.add_node(task_id, **{
             "workload":    workload,
             "features":    features,
@@ -160,7 +160,7 @@ class WorkloadDAG:
         print(f"{'='*60}")
         for node in self.priority_order():
             d = self.G.nodes[node]
-            crit = "★" if d["critical"] else " "
+            crit = "*" if d["critical"] else " "
             print(
                 f"  {crit} {node:20s} device={d['device']:3s} "
                 f"priority={d['priority']:.3f}s "

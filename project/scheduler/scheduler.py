@@ -122,8 +122,8 @@ class AIScheduler:
             print("[Scheduler] Assignment:")
             for tid, dev in assignment.items():
                 d = dag.G.nodes[tid]
-                crit = "★ " if d["critical"] else "  "
-                print(f"  {crit}{tid:20s} → {dev.upper():3s}  "
+                crit = "* " if d["critical"] else "  "
+                print(f"  {crit}{tid:20s} -> {dev.upper():3s}  "
                       f"(est {d['gpu_est_s'] if dev=='gpu' else d['cpu_est_s']:.3f}s)")
         return assignment
 
