@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HPC Capstone Project - Team Repository Index & Architecture Guide</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 18mm 16mm 18mm 16mm;
+    }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.45;
+      font-size: 10.5pt;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    .header-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: #ffffff;
+      padding: 20px 24px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .header-banner h1 {
+      margin: 0 0 6px 0;
+      font-size: 17pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    .header-banner .subtitle {
+      font-size: 11pt;
+      color: #93c5fd;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      font-size: 9pt;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding-top: 10px;
+    }
+    .meta-item strong {
+      color: #cbd5e1;
+    }
+    .meta-item a {
+      color: #67e8f9;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    h2 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 4px;
+      margin-top: 22px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    h2 .badge {
+      background: #2563eb;
+      color: white;
+      font-size: 8pt;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 8px;
+      text-transform: uppercase;
+    }
+    p {
+      margin: 0 0 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px 0;
+      font-size: 8.5pt;
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    thead {
+      display: table-header-group;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      text-align: left;
+      font-weight: 600;
+      padding: 7px 9px;
+      border: 1px solid #cbd5e1;
+    }
+    td {
+      padding: 6px 9px;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+    .cat-tag {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 7.5pt;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .tag-doc { background: #e0e7ff; color: #3730a3; }
+    .tag-exec { background: #dcfce7; color: #166534; }
+    .tag-data { background: #fef3c7; color: #92400e; }
+    .tag-ml { background: #f3e8ff; color: #6b21a8; }
+    .tag-viz { background: #fce7f3; color: #9d174d; }
+    .tag-sched { background: #e2e8f0; color: #475569; }
+
+    code {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 8pt;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: #0f172a;
+    }
+    .code-block {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 8.5pt;
+      line-height: 1.4;
+      margin: 10px 0;
+      white-space: pre;
+    }
+    .callout {
+      border-left: 4px solid #2563eb;
+      background: #eff6ff;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin: 10px 0;
+      font-size: 8.5pt;
+    }
+    .callout-warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #ffffff;
+      font-size: 8.5pt;
+    }
+    .card-title {
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 4px;
+      font-size: 9pt;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .footer {
+      margin-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+      font-size: 7.5pt;
+      color: #64748b;
+      text-align: center;
+    }
+    a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER BANNER -->
+  <div class="header-banner">
+    <h1>AI-Driven Adaptive Multi-Objective CPU–GPU Workload Scheduling and Resource Optimization for Cloud HPC</h1>
+    <div class="subtitle">B.Tech Capstone Project • Team Repository Index & Architecture Guide</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <strong>GitHub Repository:</strong><br>
+        <a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC">
+          github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling...
+        </a>
+      </div>
+      <div class="meta-item">
+        <strong>Target Accelerator / Node:</strong> NVIDIA Tesla T4 (16 GB) + 4 Intel Xeon vCPUs
+      </div>
+      <div class="meta-item">
+        <strong>Implementation Status:</strong> Objective 1 (Complete) | Objective 2 (Complete)
+      </div>
+      <div class="meta-item">
+        <strong>Test Coverage:</strong> 14/14 Automated Unit & Integration Tests Passing
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK START -->
+  <h2>⚡ Quick Start Commands For Team Members</h2>
+  <div class="code-block"># 1. Clone repository
+git clone https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC.git
+cd AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC
+
+# 2. Install requirements
+pip install -r project/requirements.txt
+
+# 3. Run full automated pipeline (Layers 1..3, Model Training, Evaluation, Plots & Report)
+python project/main.py
+
+# 4. Run automated test suite
+python project/main.py --run-tests</div>
+
+  <!-- COMPONENT INDEX TABLE -->
+  <h2>🗂️ Repository Index: What Is Where <span class="badge">Directory Map</span></h2>
+  <p style="font-size: 8.5pt; color: #475569;">
+    Use this table to navigate files across the codebase. All links point to the active GitHub repository.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 14%;">Category</th>
+        <th style="width: 32%;">File / Module Path</th>
+        <th style="width: 54%;">Purpose & Contents</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cat-tag tag-doc">Guides & Docs</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/README.md"><code>README.md</code></a></td>
+        <td><strong>Primary Technical Guide</strong>: Architecture, timing gates, feature schema, results table, anti-leakage rules, and CLI options.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-doc">Guides & Docs</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/PSEUDO.md"><code>PSEUDO.md</code></a></td>
+        <td><strong>Layman-Friendly Guide</strong>: Step-by-step plain English explanations of each file, function, and formula for viva/reviews.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-doc">Guides & Docs</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/PROJECT_PLAN.md"><code>PROJECT_PLAN.md</code></a></td>
+        <td><strong>Authoritative Engineering Blueprint</strong>: 44-section formal academic and implementation plan for the capstone.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-exec">Orchestration</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/main.py"><code>project/main.py</code></a></td>
+        <td><strong>Main Pipeline Driver</strong>: Executes entire data curation, Model A/B training, LOWO evaluation, figures, and test suite.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-exec">Verification</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/tests/test_pipeline.py"><code>project/tests/test_pipeline.py</code></a></td>
+        <td><strong>Automated Test Suite (14 Tests)</strong>: Validates parser regexes, timing math, zero-leakage, ML predictions, and figures.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-data">Data (Layer 1)</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/dataset/raw_data/layer1_raw_executions.csv"><code>dataset/raw_data/layer1_...csv</code></a></td>
+        <td><strong>Layer 1 Raw Runs</strong>: 33 empirical executions (21 valid, 12 documented non-zero return code failures with stderr).</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-data">Data (Layer 2)</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/dataset/layer2_aggregated_performance.csv"><code>dataset/layer2_aggregated_...csv</code></a></td>
+        <td><strong>Layer 2 Aggregated Runs</strong>: Drops warm-up run 1; computes mean, std, median, CV%. Gates BFS vs CFD.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-data">Data (Layer 3)</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/dataset/layer3_ml_dataset.csv"><code>dataset/layer3_ml_dataset.csv</code></a></td>
+        <td><strong>Layer 3 ML Dataset</strong>: Rubric v1.0 pre-execution features + target label (<code>preferred_device</code>). Strictly zero leakage.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-data">Profiling</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/profiler/parsers.py"><code>project/profiler/parsers.py</code></a></td>
+        <td>Regex parsers capturing CPU compute, GPU H2D, Kernel compute, and D2H intervals from standard output.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-data">Profiling</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/profiler/measurement_utils.py"><code>project/profiler/measurement_...py</code></a></td>
+        <td>Statistical helpers (CV%, standard deviation, median, warm-up exclusion).</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-ml">Machine Learning</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/ml/feature_schema.py"><code>project/ml/feature_schema.py</code></a></td>
+        <td>Defines pre-execution features, Model A/B column lists, and enforces programmatic anti-leakage audits.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-ml">Machine Learning</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/ml/train_classifier.py"><code>project/ml/train_classifier.py</code></a></td>
+        <td>Trains Random Forest pipelines (<code>model_a.pkl</code> and <code>model_b.pkl</code>) using scikit-learn.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-ml">Machine Learning</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/ml/evaluate_classifier.py"><code>project/ml/evaluate_classifier.py</code></a></td>
+        <td>Implements Leave-One-Workload-Out (LOWO) evaluation and Majority Baseline benchmark.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-viz">Visualizations</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/analysis/visualization.py"><code>project/analysis/visualization.py</code></a></td>
+        <td>Generates all 9 publication-grade 300 DPI figures using matplotlib and seaborn into <code>figures/</code>.</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-viz">Visualizations</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/tree/main/project/analysis/figures"><code>project/analysis/figures/</code></a></td>
+        <td>Directory storing all 9 generated PNG charts (confusion matrices, feature importances, LOWO plots).</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-viz">Reports</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/blob/main/project/results/metrics/performance_analysis_report.txt"><code>project/results/metrics/...report.txt</code></a></td>
+        <td>Detailed text report addressing all 10 evaluation criteria (speedups, gating rationale, ablation findings).</td>
+      </tr>
+      <tr>
+        <td><span class="cat-tag tag-sched">Objective 3 Stubs</span></td>
+        <td><a href="https://github.com/Abhiram-k1/AI-Driven-Adaptive-CPU-GPU-Workload-Scheduling-and-Resource-Optimization-Cloud-HPC/tree/main/project/scheduler"><code>project/scheduler/</code></a></td>
+        <td><strong>Future Work Architectural Stubs</strong>: DAG builder, Multi-objective Pareto, and Adaptive weight formulas.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE BREAK FOR CLEAN 2-PAGE PRINT -->
+  <div class="page-break"></div>
+
+  <!-- METHODOLOGY & HIGHLIGHTS -->
+  <h2>🔬 Core Methodological Principles & Key Findings</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">1. Three-Layer Dataset Architecture</div>
+      <p><strong>Layer 1 (Raw)</strong>: Preserves every single execution trace (33 total, including 12 failures) with exit codes and raw standard error strings.</p>
+      <p><strong>Layer 2 (Aggregated)</strong>: Drops warm-up run 1; computes mean, std, median, and CV%. Enforces strict gating gates.</p>
+      <p><strong>Layer 3 (ML Ready)</strong>: Features calculated pre-execution. Gated workloads with incomplete timing validation are strictly blocked.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Gating Decision: BFS vs CFD</div>
+      <p><strong>BFS (Gated / Blocked)</strong>: OpenMP total path includes graph read while CUDA timers exclude file I/O. Definitional mismatch invalidates speedup. Marked <code>pending_validation</code>.</p>
+      <p><strong>CFD (Validated)</strong>: Both OpenMP and CUDA timers measure pure compute across 2000 RK iterations. GPU speedup is <strong>4.71×</strong>. Admitted to Layer 3.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">3. Strict Anti-Leakage Guarantee</div>
+      <p>The ML classifier must decide placement <em>before</em> running the workload. The following runtime telemetry values are <strong>forbidden</strong> as inputs:</p>
+      <ul style="margin: 0; padding-left: 16px;">
+        <li>Measured CPU or GPU execution times</li>
+        <li>Measured H2D or D2H PCIe transfer times</li>
+        <li>Empirical speedup or performance ratios</li>
+        <li>Target label (<code>preferred_device</code>)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. Model A vs Model B Ablation Study</div>
+      <p><strong>Model A (Full Features)</strong>: Uses domain + workload type identity + physical features (13 total).</p>
+      <p><strong>Model B (Ablated)</strong>: <em>Removes identity</em> (<code>workload_type</code> & <code>workload_domain</code>). Forces prediction solely from intrinsic physical traits (parallelism, memory boundness, compute intensity, transfer size).</p>
+    </div>
+  </div>
+
+  <!-- RESULTS SUMMARY TABLE -->
+  <h2>📈 Experimental Results Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Evaluation Metric</th>
+        <th>Majority Baseline</th>
+        <th>Model A (Full Feature Set)</th>
+        <th>Model B (Ablated Identity)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Accuracy</strong></td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+      </tr>
+      <tr>
+        <td><strong>Precision (Macro)</strong></td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+      </tr>
+      <tr>
+        <td><strong>Recall (Macro)</strong></td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+      </tr>
+      <tr>
+        <td><strong>F1-Score (Macro)</strong></td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+        <td>1.0000</td>
+      </tr>
+      <tr>
+        <td><strong>LOWO Generalization</strong></td>
+        <td>Trivial Majority</td>
+        <td>Valid on validated CFD cluster</td>
+        <td>Valid across intrinsic features</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 9 FIGURES REFERENCE -->
+  <h2>🖼️ The 9 Publication Figures in <code>project/analysis/figures/</code></h2>
+  <div class="grid-2" style="font-size: 8pt;">
+    <div>
+      • <code>class_distribution.png</code>: Class balance of Layer 3 dataset.<br>
+      • <code>model_a_confusion_matrix.png</code>: Prediction matrix for Model A.<br>
+      • <code>model_b_confusion_matrix.png</code>: Prediction matrix for Model B.<br>
+      • <code>model_comparison.png</code>: Grouped bar chart (Accuracy, Prec, Recall, F1).<br>
+      • <code>per_workload_f1.png</code>: Per-benchmark F1 comparison.
+    </div>
+    <div>
+      • <code>feature_importance_model_a.png</code>: Top features for Model A.<br>
+      • <code>feature_importance_model_b.png</code>: Top features for Model B.<br>
+      • <code>lowo_comparison.png</code>: Leave-One-Workload-Out cross validation.<br>
+      • <code>prediction_confidence.png</code>: Softmax/RF tree vote confidence.<br>
+      • <code>actual_vs_predicted_distribution.png</code>: Placement balance.
+    </div>
+  </div>
+
+  <!-- VIVA & PRESENTATION TALKING POINTS -->
+  <h2>🎓 Key Talking Points for Project Reviews / Viva</h2>
+  <div class="callout">
+    <strong>1. Why didn't you just train on BFS too?</strong><br>
+    <em>"Because scientific rigor matters more than raw sample count. OpenMP BFS included file reading in its timer, while CUDA BFS only timed the kernel loop. Training on inconsistent timers would be training on noise. We gated BFS as 'pending validation' and evaluated CFD whose timers are apples-to-apples."</em>
+  </div>
+  <div class="callout callout-warning">
+    <strong>2. Why do you have Model A and Model B?</strong><br>
+    <em>"Model A proves the classifier works when workload identity is known. Model B proves the model generalizes to completely unknown workloads by relying exclusively on intrinsic computational features like memory boundness, arithmetic intensity, and transfer size, without memorizing benchmark names."</em>
+  </div>
+
+  <div class="footer">
+    AI-Driven Adaptive Multi-Objective CPU–GPU Workload Scheduling • Department of AI & Data Science • Capstone Project Index
+  </div>
+
+</body>
+</html>
