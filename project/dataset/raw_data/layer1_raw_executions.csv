@@ -1,0 +1,83 @@
+workload,input_file,input_size_bytes,input_size_mib,device,run_id,is_warmup,benchmark_reported_time_ms,cpu_process_wall_time_ms,gpu_phase_time_ms,gpu_kernel_time_ms,host_to_device_time_ms,device_to_host_time_ms,gpu_total_path_time_ms,gpu_total_path_time_status,timing_type,build_status,return_code,timing_parse_ok,failure_reason,stdout,stderr,gpu_device_index,gpu_type,cpu_cores_available
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,0,True,47.108,1457.675,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.047108
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,1,False,35.133,1404.358,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.035133
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,2,False,36.672,1360.436,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.036672
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,3,False,36.037,1413.98,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.036037
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,4,False,36.217,1394.276,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.036217
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,5,False,36.199,1410.074,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.036199
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,cpu,6,False,35.702,1350.527,,,,,,not_applicable,application_reported_omp_wtime_loop,success,0,True,,"Reading File
+Start traversing the tree
+Compute time: 0.035702
+Result stored in result.txt",,,,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,1,False,,2.035,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,2,False,,1.68,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,3,False,,1.692,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,4,False,,1.666,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,5,False,,1.586,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+bfs,graph1MW_6.txt,64198393,61.224358558654785,gpu,6,False,,1.684,,,,,,pending_validation,cudaEvent_instrumented_segments,executable_not_found,127,False,Executable './bfs' not found in working directory (rc=127),/bin/sh: 1: ./bfs: not found,/bin/sh: 1: ./bfs: not found,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,0,True,77412.6,79727.69,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.4126
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,1,False,77412.59999999999,79727.69,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.4126
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,2,False,77490.9,79706.31,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.4909
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,3,False,77416.2,79616.28,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.4162
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,4,False,77583.7,79844.96,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.5837
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,5,False,77969.9,80237.51,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.9699
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,cpu,6,False,77866.7,80058.79,,,,,,not_applicable,application_reported_omp_wtime_2000_iterations,success,0,True,,"Compute time: 77.8667
+Saving solution...",,,,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,1,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,2,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,3,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,4,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,5,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,6,False,,1.7,,,,,,validated,sdkTimer_scaled_2000_iterations,shared_library_missing,127,False,libcudart.so.4 missing before nvcc recompilation,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,./euler3d: error while loading shared libraries: libcudart.so.4: cannot open shared object file,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,0,True,1143.462,2510.3,1143.462,1143.462,,,1143.462,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.000571731 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,1,False,1113.244,2470.1,1113.244,1113.244,,,1113.244,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00055662 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,2,False,1124.522,2482.3,1124.522,1124.522,,,1124.522,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00056226 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,3,False,1128.3940000000002,2485.6,1128.3940000000002,1128.3940000000002,,,1128.3940000000002,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00056420 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,4,False,1118.474,2475.2,1118.474,1118.474,,,1118.474,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00055924 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,5,False,1125.5720000000001,2486.0,1125.5720000000001,1125.5720000000001,,,1125.5720000000001,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00056279 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4
+cfd,fvcorr.domn.193K,45659486,43.54427909851074,gpu,6,False,1131.964,2488.4,1131.964,1131.964,,,1131.964,validated,sdkTimer_scaled_2000_iterations,success,0,True,,"Name: Tesla T4
+Starting...
+0.00056598 seconds per iteration
+Saving solution...",,0.0,Tesla T4,4

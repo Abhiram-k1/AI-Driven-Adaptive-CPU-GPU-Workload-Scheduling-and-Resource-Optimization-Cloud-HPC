@@ -1,0 +1,2 @@
+workload,input_file,input_size_mib,workload_type,workload_domain,estimated_parallelism,estimated_memory_boundness,estimated_compute_intensity,has_irregular_memory,has_strong_serial_dependency,estimated_transfer_size_mib,transfer_estimation_method,cpu_cores_available,gpu_type_encoded,gpu_memory_gb,preferred_device,target_label
+cfd,fvcorr.domn.193K,43.54428,iterative_solver,fluid_dynamics,5,4,4,0,0,43.54428,source_buffer_analysis,4,Tesla_T4,16.0,gpu,1

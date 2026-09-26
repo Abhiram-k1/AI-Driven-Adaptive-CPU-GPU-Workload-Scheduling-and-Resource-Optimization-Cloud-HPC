@@ -1,0 +1,2 @@
+workload,input_file,actual_device,actual_label,majority_baseline_pred,model_a_pred,model_a_pred_device,model_a_conf,model_a_correct,model_b_pred,model_b_pred_device,model_b_conf,model_b_correct,fold_type
+cfd,fvcorr.domn.193K,gpu,1,1,1,gpu,1.0,True,1,gpu,1.0,True,in_sample_evaluated_gated_holdout
