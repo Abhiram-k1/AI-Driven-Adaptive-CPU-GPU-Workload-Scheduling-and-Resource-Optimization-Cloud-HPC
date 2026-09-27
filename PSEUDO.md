@@ -107,7 +107,13 @@ We condense repeated runs of the same configuration into a single statistical pr
 
 ### What are we doing?
 We assign the official target label (`preferred_device = "cpu"` or `"gpu"`) using the validated Layer 2 measurements:
-$$\text{preferred\_device} = \begin{cases} \text{"cpu"} & \text{if } \text{Speedup} < 1.0 \ (\text{CPU Median} < \text{GPU Total Path}) \\ \text{"gpu"} & \text{if } \text{Speedup} \ge 1.0 \ (\text{CPU Median} \ge \text{GPU Total Path}) \end{cases}$$
+
+$$
+\text{preferred\_device} = \begin{cases} 
+\text{"cpu"}, & \text{if } \text{Speedup} < 1.0 \quad (\text{CPU Median} < \text{GPU Total Path}) \\ 
+\text{"gpu"}, & \text{if } \text{Speedup} \ge 1.0 \quad (\text{CPU Median} \ge \text{GPU Total Path}) 
+\end{cases}
+$$
 
 ### Class Balance:
 - **CPU Labels:** 2 configurations (`NN`, `BFS small`) = **25%**
