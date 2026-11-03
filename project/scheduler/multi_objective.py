@@ -110,7 +110,7 @@ class WeightedSumScheduler:
     def solve(
         self,
         weights: tuple[float, float, float],
-        max_enumerate: int = 20,
+        max_enumerate: int = 10,
     ) -> dict[str, str]:
         """
         Find device assignment minimising weighted sum of objectives.
@@ -145,11 +145,10 @@ class WeightedSumScheduler:
             return best_asgn
 
         else:
-            # Greedy: assign each task to the device with lower weighted cost
+            # Fast Greedy assignment
             asgn = {}
             for tid in self.task_ids:
                 t = self.tasks[tid]
-                # Per-task marginal cost
                 cpu_cost = w1 * t["cpu_est_s"] + w2 * (t["cpu_est_s"] * CPU_POWER_W / 10000.0)
                 gpu_transfer = t["features"].get("transfer_bytes_mb", 0) / PCIE_MB_S
                 gpu_cost = (
@@ -158,6 +157,22 @@ class WeightedSumScheduler:
                     + w3 * gpu_transfer
                 )
                 asgn[tid] = "gpu" if gpu_cost < cpu_cost else "cpu"
+
+            # Fast 1-opt local search refinement (instant Pareto optimization)
+            cur_score = score(asgn)
+            for _ in range(2):
+                improved = False
+                for tid in self.task_ids:
+                    flipped = "cpu" if asgn[tid] == "gpu" else "gpu"
+                    asgn[tid] = flipped
+                    new_s = score(asgn)
+                    if new_s < cur_score:
+                        cur_score = new_s
+                        improved = True
+                    else:
+                        asgn[tid] = "cpu" if flipped == "gpu" else "gpu"
+                if not improved:
+                    break
             return asgn
 
 
