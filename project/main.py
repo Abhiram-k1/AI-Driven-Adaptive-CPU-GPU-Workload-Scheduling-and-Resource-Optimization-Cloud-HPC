@@ -65,7 +65,7 @@ def run_full_pipeline(rebuild_raw: bool = False):
 
     # Step 4: Random Forest Training (Model A vs Model B)
     print("\n>>> STEP 4: MODEL A & MODEL B RANDOM FOREST TRAINING <<<")
-    model_a, model_b = train_models(layer3_path)
+    model_a, model_b, model_c = train_models(layer3_path)
 
     # Step 5: Leave-One-Workload-Out (LOWO) Evaluation
     print("\n>>> STEP 5: LOWO EVALUATION & METRICS COMPUTATION <<<")

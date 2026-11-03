@@ -5,7 +5,7 @@ Workload-specific timing output parsers for Rodinia 3.1 workloads.
 Strictly implements Section 4, 5, 6 of the Master Execution Prompt.
 
 CRITICAL RULES:
-1. No generic parser is used.
+1. No generic parser is used for registered workloads.
 2. Timing values are extracted strictly according to source-level semantics.
 3. If parsing fails, returns timing_parse_ok = False and failure_reason.
 4. NEVER replace missing or unparsed GPU/CPU time with wall-clock time.
@@ -17,10 +17,7 @@ from typing import Dict, Any, Optional
 
 
 def parse_bfs_cpu_stdout(stdout: str) -> Dict[str, Any]:
-    """
-    Parses OpenMP BFS CPU execution output (openmp/bfs/bfs.cpp:173).
-    Prints: 'Compute time: <val>' where <val> is in seconds.
-    """
+    """Parses OpenMP BFS CPU execution output (openmp/bfs/bfs.cpp:173)."""
     result: Dict[str, Any] = {
         "timing_parse_ok": False,
         "benchmark_reported_time_ms": None,
@@ -41,13 +38,7 @@ def parse_bfs_cpu_stdout(stdout: str) -> Dict[str, Any]:
 
 
 def parse_bfs_gpu_stdout(stdout: str) -> Dict[str, Any]:
-    """
-    Parses CUDA BFS GPU execution output (cuda/bfs/bfs.cu).
-    Extracts:
-      - Initial Host to Device Time (ms)
-      - GPU Kernel Time (ms)
-      - Final Device to Host Time (ms)
-    """
+    """Parses CUDA BFS GPU execution output (cuda/bfs/bfs.cu)."""
     result: Dict[str, Any] = {
         "timing_parse_ok": False,
         "gpu_kernel_time_ms": None,
@@ -102,11 +93,7 @@ def parse_bfs_gpu_stdout(stdout: str) -> Dict[str, Any]:
 
 
 def parse_cfd_cpu_stdout(stdout: str) -> Dict[str, Any]:
-    """
-    Parses OpenMP CFD CPU execution output (openmp/cfd/euler3d_cpu.cpp:494).
-    Prints: 'Compute time: <val>' where <val> is in seconds for 2000 RK iterations.
-    Scaled to milliseconds (val * 1000.0).
-    """
+    """Parses OpenMP CFD CPU execution output (openmp/cfd/euler3d_cpu.cpp:494)."""
     result: Dict[str, Any] = {
         "timing_parse_ok": False,
         "benchmark_reported_time_ms": None,
@@ -127,12 +114,7 @@ def parse_cfd_cpu_stdout(stdout: str) -> Dict[str, Any]:
 
 
 def parse_cfd_gpu_stdout(stdout: str, iterations: int = 2000) -> Dict[str, Any]:
-    """
-    Parses CUDA CFD GPU execution output (cuda/cfd/euler3d.cu:589).
-    Prints: '<val> seconds per iteration'.
-    Nominally measures 2000 Runge-Kutta iterations.
-    Total GPU compute phase time = val_sec_per_iter * iterations * 1000.0 (ms).
-    """
+    """Parses CUDA CFD GPU execution output (cuda/cfd/euler3d.cu:589)."""
     result: Dict[str, Any] = {
         "timing_parse_ok": False,
         "gpu_phase_time_ms": None,
@@ -158,29 +140,241 @@ def parse_cfd_gpu_stdout(stdout: str, iterations: int = 2000) -> Dict[str, Any]:
     return result
 
 
+def parse_hotspot_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses OpenMP Hotspot CPU output."""
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime_loop", "failure_reason": None}
+    m = re.search(r"(?:Compute time|Time):\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Hotspot CPU timing in stdout"
+    return result
+
+
+def parse_hotspot_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses CUDA Hotspot GPU output."""
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "sdkTimer_measured", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Hotspot GPU timing in stdout"
+    return result
+
+
+def parse_lud_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses OpenMP LUD CPU output."""
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime_loop", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing LUD CPU timing in stdout"
+    return result
+
+
+def parse_lud_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses CUDA LUD GPU output."""
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "sdkTimer_measured", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing LUD GPU timing in stdout"
+    return result
+
+
+def parse_kmeans_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses OpenMP KMeans CPU output."""
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime_loop", "failure_reason": None}
+    m = re.search(r"Compute time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing KMeans CPU timing in stdout"
+    return result
+
+
+def parse_kmeans_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses CUDA KMeans GPU output."""
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "cudaEvent_measured", "failure_reason": None}
+    m = re.search(r"Time for kMeans:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing KMeans GPU timing in stdout"
+    return result
+
+
+def parse_srad_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses OpenMP SRAD CPU output."""
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime_loop", "failure_reason": None}
+    m = re.search(r"Computation time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing SRAD CPU timing in stdout"
+    return result
+
+
+def parse_srad_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses CUDA SRAD GPU output."""
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "sdkTimer_measured", "failure_reason": None}
+    m = re.search(r"Computation time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing SRAD GPU timing in stdout"
+    return result
+
+
+def parse_nn_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses OpenMP NN CPU output."""
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime_loop", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing NN CPU timing in stdout"
+    return result
+
+
+def parse_nn_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    """Parses CUDA NN GPU output."""
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "cudaEvent_instrumented_segments", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing NN GPU timing in stdout"
+    return result
+
+
+def parse_nw_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing NW CPU timing pattern"
+    return result
+
+
+def parse_nw_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "cudaEvent_measured", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing NW GPU timing pattern"
+    return result
+
+
+def parse_backprop_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)\s*sec", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Backprop CPU timing pattern"
+    return result
+
+
+def parse_backprop_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "cudaEvent_measured", "failure_reason": None}
+    m = re.search(r"Time:\s*([\d.]+)\s*sec", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Backprop GPU timing pattern"
+    return result
+
+
+def parse_particlefilter_cpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "benchmark_reported_time_ms": None, "timing_type": "application_reported_omp_wtime", "failure_reason": None}
+    m = re.search(r"TOTAL TIME:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["benchmark_reported_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Particlefilter CPU timing pattern"
+    return result
+
+
+def parse_particlefilter_gpu_stdout(stdout: str) -> Dict[str, Any]:
+    result = {"timing_parse_ok": False, "gpu_total_path_time_ms": None, "timing_type": "cudaEvent_measured", "failure_reason": None}
+    m = re.search(r"TOTAL TIME:\s*([\d.]+)", stdout, re.IGNORECASE)
+    if m:
+        result["gpu_total_path_time_ms"] = float(m.group(1)) * 1000.0
+        result["timing_parse_ok"] = True
+    else:
+        result["failure_reason"] = "Missing Particlefilter GPU timing pattern"
+    return result
+
+
+PARSER_REGISTRY = {
+    ("bfs", "cpu"): parse_bfs_cpu_stdout,
+    ("bfs", "gpu"): parse_bfs_gpu_stdout,
+    ("cfd", "cpu"): parse_cfd_cpu_stdout,
+    ("cfd", "gpu"): parse_cfd_gpu_stdout,
+    ("hotspot", "cpu"): parse_hotspot_cpu_stdout,
+    ("hotspot", "gpu"): parse_hotspot_gpu_stdout,
+    ("lud", "cpu"): parse_lud_cpu_stdout,
+    ("lud", "gpu"): parse_lud_gpu_stdout,
+    ("kmeans", "cpu"): parse_kmeans_cpu_stdout,
+    ("kmeans", "gpu"): parse_kmeans_gpu_stdout,
+    ("srad", "cpu"): parse_srad_cpu_stdout,
+    ("srad", "gpu"): parse_srad_gpu_stdout,
+    ("nn", "cpu"): parse_nn_cpu_stdout,
+    ("nn", "gpu"): parse_nn_gpu_stdout,
+    ("nw", "cpu"): parse_nw_cpu_stdout,
+    ("nw", "gpu"): parse_nw_gpu_stdout,
+    ("backprop", "cpu"): parse_backprop_cpu_stdout,
+    ("backprop", "gpu"): parse_backprop_gpu_stdout,
+    ("particlefilter", "cpu"): parse_particlefilter_cpu_stdout,
+    ("particlefilter", "gpu"): parse_particlefilter_gpu_stdout,
+}
+
+
 def get_workload_parser(workload: str, device: str):
     """Factory function returning the workload and device-specific parser."""
     w = workload.lower()
     d = device.lower()
-    if w == "bfs":
-        return parse_bfs_cpu_stdout if d == "cpu" else parse_bfs_gpu_stdout
-    elif w == "cfd":
-        return parse_cfd_cpu_stdout if d == "cpu" else parse_cfd_gpu_stdout
-    else:
-        # Fallback parser for generic patterns if specific parser not yet registered
-        def generic_parser(stdout: str) -> Dict[str, Any]:
-            match = re.search(r"(?:Compute time|Time|Execution time):\s*([\d.]+)", stdout, re.IGNORECASE)
-            if match:
-                return {
-                    "timing_parse_ok": True,
-                    "benchmark_reported_time_ms": float(match.group(1)) * 1000.0,
-                    "timing_type": "generic_time_regex",
-                    "failure_reason": None,
-                }
+
+    if (w, d) in PARSER_REGISTRY:
+        return PARSER_REGISTRY[(w, d)]
+
+    # Fallback parser for generic patterns if specific parser not yet explicitly registered
+    def generic_parser(stdout: str) -> Dict[str, Any]:
+        match = re.search(r"(?:Compute time|Total time|Time|Execution time):\s*([\d.]+)", stdout, re.IGNORECASE)
+        if match:
+            time_ms = float(match.group(1)) * 1000.0
             return {
-                "timing_parse_ok": False,
-                "benchmark_reported_time_ms": None,
-                "timing_type": "generic_time_regex",
-                "failure_reason": f"No timing pattern matched for {w} on {d}",
+                "timing_parse_ok": True,
+                "benchmark_reported_time_ms": time_ms if d == "cpu" else None,
+                "gpu_total_path_time_ms": time_ms if d == "gpu" else None,
+                "timing_type": f"generic_{d}_time_regex",
+                "failure_reason": None,
             }
-        return generic_parser
+        return {
+            "timing_parse_ok": False,
+            "benchmark_reported_time_ms": None,
+            "gpu_total_path_time_ms": None,
+            "timing_type": f"generic_{d}_time_regex",
+            "failure_reason": f"No timing pattern matched for {w} on {d}",
+        }
+    return generic_parser

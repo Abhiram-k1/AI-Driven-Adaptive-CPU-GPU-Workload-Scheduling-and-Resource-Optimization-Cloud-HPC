@@ -8,7 +8,7 @@ Strictly implements:
       Accuracy, Precision, Recall, F1 (macro and per-class)
       Per-workload metrics
       Majority-class baseline
-      Honest instability reporting when dataset size is constrained
+      Multi-model comparison: Model A (RF Full), Model B (RF Ablated), Model C (Gradient Boosting)
   - Saves predictions and metrics into results/
 """
 
@@ -60,24 +60,20 @@ def evaluate_lowo(
     print(f"Class distribution: {dict(class_counts)}")
     print(f"Majority-class baseline: {majority_class_str.upper()} ({majority_baseline_acc * 100:.2f}%)")
 
-    # LOWO Execution
     predictions_records = []
     lowo_status = "Stable"
 
     if n_workloads < 2:
         lowo_status = "Unstable / Insufficient workloads for multi-workload leave-out split (n=1)"
         print(f"\n[LOWO NOTICE] {lowo_status}")
-        print("Evaluating single-workload self-consistency and majority baseline comparison.")
-
-        # Train on available sample, evaluate on it
         y_true = (df_ml["preferred_device"] == "gpu").astype(int).values
-        model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, random_state=42).fit(df_ml, y_true)
-        model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, random_state=42).fit(df_ml, y_true)
+        model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="rf", random_state=42).fit(df_ml, y_true)
+        model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, classifier_type="rf", random_state=42).fit(df_ml, y_true)
+        model_c = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="gb", random_state=42).fit(df_ml, y_true)
 
-        pred_a = model_a.predict(df_ml)
-        prob_a = model_a.predict_proba(df_ml)
-        pred_b = model_b.predict(df_ml)
-        prob_b = model_b.predict_proba(df_ml)
+        pred_a, prob_a = model_a.predict(df_ml), model_a.predict_proba(df_ml)
+        pred_b, prob_b = model_b.predict(df_ml), model_b.predict_proba(df_ml)
+        pred_c, prob_c = model_c.predict(df_ml), model_c.predict_proba(df_ml)
 
         for i, row in df_ml.iterrows():
             predictions_records.append({
@@ -94,6 +90,10 @@ def evaluate_lowo(
                 "model_b_pred_device": "gpu" if pred_b[i] == 1 else "cpu",
                 "model_b_conf": float(prob_b[i, int(pred_b[i])]),
                 "model_b_correct": bool(pred_b[i] == y_true[i]),
+                "model_c_pred": int(pred_c[i]),
+                "model_c_pred_device": "gpu" if pred_c[i] == 1 else "cpu",
+                "model_c_conf": float(prob_c[i, int(pred_c[i])]),
+                "model_c_correct": bool(pred_c[i] == y_true[i]),
                 "fold_type": "in_sample_evaluated_gated_holdout"
             })
     else:
@@ -105,13 +105,13 @@ def evaluate_lowo(
             y_train = (train_df["preferred_device"] == "gpu").astype(int).values
             y_test = (test_df["preferred_device"] == "gpu").astype(int).values
 
-            model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, random_state=42).fit(train_df, y_train)
-            model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, random_state=42).fit(train_df, y_train)
+            model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="rf", random_state=42).fit(train_df, y_train)
+            model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, classifier_type="rf", random_state=42).fit(train_df, y_train)
+            model_c = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="gb", random_state=42).fit(train_df, y_train)
 
-            pred_a = model_a.predict(test_df)
-            prob_a = model_a.predict_proba(test_df)
-            pred_b = model_b.predict(test_df)
-            prob_b = model_b.predict_proba(test_df)
+            pred_a, prob_a = model_a.predict(test_df), model_a.predict_proba(test_df)
+            pred_b, prob_b = model_b.predict(test_df), model_b.predict_proba(test_df)
+            pred_c, prob_c = model_c.predict(test_df), model_c.predict_proba(test_df)
 
             for i, (_, row) in enumerate(test_df.iterrows()):
                 predictions_records.append({
@@ -128,6 +128,10 @@ def evaluate_lowo(
                     "model_b_pred_device": "gpu" if pred_b[i] == 1 else "cpu",
                     "model_b_conf": float(prob_b[i, int(pred_b[i])]),
                     "model_b_correct": bool(pred_b[i] == y_test[i]),
+                    "model_c_pred": int(pred_c[i]),
+                    "model_c_pred_device": "gpu" if pred_c[i] == 1 else "cpu",
+                    "model_c_conf": float(prob_c[i, int(pred_c[i])]),
+                    "model_c_correct": bool(pred_c[i] == y_test[i]),
                     "fold_type": "lowo_held_out"
                 })
 
@@ -139,9 +143,10 @@ def evaluate_lowo(
     df_preds.to_csv(pred_csv_path, index=False)
     print(f"Predictions saved to: {pred_csv_path}")
 
-    # Compute Metrics for Model A and Model B
+    # Compute Metrics
     metrics_a = compute_model_metrics(df_preds["actual_label"].values, df_preds["model_a_pred"].values)
     metrics_b = compute_model_metrics(df_preds["actual_label"].values, df_preds["model_b_pred"].values)
+    metrics_c = compute_model_metrics(df_preds["actual_label"].values, df_preds["model_c_pred"].values)
     metrics_base = compute_model_metrics(df_preds["actual_label"].values, df_preds["majority_baseline_pred"].values)
 
     # Per-workload performance breakdown
@@ -151,6 +156,7 @@ def evaluate_lowo(
         w_y = w_df["actual_label"].values
         w_pa = w_df["model_a_pred"].values
         w_pb = w_df["model_b_pred"].values
+        w_pc = w_df["model_c_pred"].values
         per_workload_metrics[w] = {
             "n_samples": len(w_df),
             "actual_class": w_df["actual_device"].iloc[0],
@@ -158,6 +164,8 @@ def evaluate_lowo(
             "model_a_f1": float(f1_score(w_y, w_pa, zero_division=0)),
             "model_b_accuracy": float(accuracy_score(w_y, w_pb)),
             "model_b_f1": float(f1_score(w_y, w_pb, zero_division=0)),
+            "model_c_accuracy": float(accuracy_score(w_y, w_pc)),
+            "model_c_f1": float(f1_score(w_y, w_pc, zero_division=0)),
         }
 
     full_evaluation = {
@@ -173,6 +181,7 @@ def evaluate_lowo(
         "majority_baseline": metrics_base,
         "model_a": metrics_a,
         "model_b": metrics_b,
+        "model_c": metrics_c,
         "per_workload": per_workload_metrics
     }
 
@@ -182,16 +191,16 @@ def evaluate_lowo(
     print(f"Metrics saved to: {metrics_json_path}")
 
     # Display Metrics Summary Table
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 90)
     print("MODEL PERFORMANCE SUMMARY (LOWO EVALUATION)")
-    print("=" * 80)
-    print(f"{'Metric':<25} | {'Majority Baseline':<18} | {'Model A (Full)':<18} | {'Model B (Ablated)':<18}")
-    print("-" * 85)
-    print(f"{'Accuracy':<25} | {metrics_base['accuracy']:<18.4f} | {metrics_a['accuracy']:<18.4f} | {metrics_b['accuracy']:<18.4f}")
-    print(f"{'Precision (Macro)':<25} | {metrics_base['precision_macro']:<18.4f} | {metrics_a['precision_macro']:<18.4f} | {metrics_b['precision_macro']:<18.4f}")
-    print(f"{'Recall (Macro)':<25} | {metrics_base['recall_macro']:<18.4f} | {metrics_a['recall_macro']:<18.4f} | {metrics_b['recall_macro']:<18.4f}")
-    print(f"{'F1-Score (Macro)':<25} | {metrics_base['f1_macro']:<18.4f} | {metrics_a['f1_macro']:<18.4f} | {metrics_b['f1_macro']:<18.4f}")
-    print("=" * 80)
+    print("=" * 90)
+    print(f"{'Metric':<20} | {'Majority Base':<14} | {'Model A (RF)':<14} | {'Model B (Abl)':<14} | {'Model C (GB)':<14}")
+    print("-" * 90)
+    print(f"{'Accuracy':<20} | {metrics_base['accuracy']:<14.4f} | {metrics_a['accuracy']:<14.4f} | {metrics_b['accuracy']:<14.4f} | {metrics_c['accuracy']:<14.4f}")
+    print(f"{'Precision (Macro)':<20} | {metrics_base['precision_macro']:<14.4f} | {metrics_a['precision_macro']:<14.4f} | {metrics_b['precision_macro']:<14.4f} | {metrics_c['precision_macro']:<14.4f}")
+    print(f"{'Recall (Macro)':<20} | {metrics_base['recall_macro']:<14.4f} | {metrics_a['recall_macro']:<14.4f} | {metrics_b['recall_macro']:<14.4f} | {metrics_c['recall_macro']:<14.4f}")
+    print(f"{'F1-Score (Macro)':<20} | {metrics_base['f1_macro']:<14.4f} | {metrics_a['f1_macro']:<14.4f} | {metrics_b['f1_macro']:<14.4f} | {metrics_c['f1_macro']:<14.4f}")
+    print("=" * 90)
 
     return full_evaluation
 
@@ -222,7 +231,7 @@ def compute_model_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, A
             "cpu": {"precision": round(prec_cpu, 4), "recall": round(rec_cpu, 4), "f1": round(f1_cpu, 4)},
             "gpu": {"precision": round(prec_gpu, 4), "recall": round(rec_gpu, 4), "f1": round(f1_gpu, 4)},
         },
-        "confusion_matrix": cm,  # [[TN, FP], [FN, TP]] where 0=CPU, 1=GPU
+        "confusion_matrix": cm,
     }
 
 

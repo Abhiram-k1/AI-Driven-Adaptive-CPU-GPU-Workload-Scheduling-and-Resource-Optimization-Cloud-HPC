@@ -1,12 +1,13 @@
 """
 ml/train_classifier.py
 ======================
-Trains the Random Forest device prediction models.
+Trains the device prediction models for CPU vs GPU placement.
 Strictly implements:
   - Section 17: Random Forest Classifier (Primary Model)
-  - Section 18: Model A vs Model B Ablation Study
-      Model A: All pre-execution features + workload_type + workload_domain
-      Model B: Intrinsic features only (excludes workload_type and workload_domain)
+  - Section 18: Model A vs Model B vs Model C Multi-Model Study
+      Model A: Random Forest (All pre-execution features + workload_type + workload_domain)
+      Model B: Random Forest (Intrinsic features only; excludes identity)
+      Model C: Gradient Boosting Classifier (Multi-algorithm baseline)
   - Section 19: Out-of-fold encoding (fit encoders strictly on training data).
 """
 
@@ -16,7 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, Tuple, List, Optional
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.preprocessing import OrdinalEncoder
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -30,32 +31,37 @@ DEFAULT_MODELS_DIR = Path(__file__).resolve().parent.parent / "results" / "model
 
 
 class DeviceClassifierPipeline:
-    """Encapsulates categorical preprocessing and Random Forest classifier."""
+    """Encapsulates categorical preprocessing and machine learning classifier."""
 
-    def __init__(self, feature_names: List[str], random_state: int = 42):
+    def __init__(self, feature_names: List[str], classifier_type: str = "rf", random_state: int = 42):
         self.feature_names = list(feature_names)
+        self.classifier_type = classifier_type.lower()
         self.random_state = random_state
         self.cat_cols = [c for c in self.feature_names if c in CATEGORICAL_FEATURES]
         self.num_cols = [c for c in self.feature_names if c not in CATEGORICAL_FEATURES]
         self.encoder: Optional[OrdinalEncoder] = None
-        self.classifier: Optional[RandomForestClassifier] = None
+        self.classifier: Optional[Any] = None
         self.classes_: np.ndarray = np.array([0, 1])  # 0=cpu, 1=gpu
         self.single_class_target: Optional[int] = None
 
     def fit(self, X_df: pd.DataFrame, y: np.ndarray):
-        """Fits preprocessing and Random Forest classifier strictly on provided training data."""
+        """Fits preprocessing and classifier strictly on provided training data."""
         X_encoded = self._fit_transform_features(X_df)
 
         unique_y = np.unique(y)
         if len(unique_y) < 2:
-            # When training fold has only one class, handle gracefully
             self.single_class_target = int(unique_y[0])
-            self.classifier = RandomForestClassifier(n_estimators=100, random_state=self.random_state)
-            # Create a minimal fit
+            if self.classifier_type == "gb":
+                self.classifier = GradientBoostingClassifier(n_estimators=50, random_state=self.random_state)
+            else:
+                self.classifier = RandomForestClassifier(n_estimators=100, random_state=self.random_state)
             self.classifier.fit(X_encoded, y)
         else:
             self.single_class_target = None
-            self.classifier = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=self.random_state)
+            if self.classifier_type == "gb":
+                self.classifier = GradientBoostingClassifier(n_estimators=50, max_depth=3, random_state=self.random_state)
+            else:
+                self.classifier = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=self.random_state)
             self.classifier.fit(X_encoded, y)
         return self
 
@@ -77,7 +83,6 @@ class DeviceClassifierPipeline:
             proba = np.zeros((len(X_df), 2))
             proba[:, self.single_class_target] = 1.0
             return proba
-        # Ensure 2-class probabilities
         probs = self.classifier.predict_proba(X_encoded)
         if probs.shape[1] == 1:
             full_probs = np.zeros((len(X_df), 2))
@@ -91,7 +96,6 @@ class DeviceClassifierPipeline:
         if self.classifier is None or not hasattr(self.classifier, "feature_importances_"):
             return pd.Series(0.0, index=self.feature_names)
         importances = self.classifier.feature_importances_
-        # Feature names match order: num_cols + cat_cols
         all_cols = self.num_cols + self.cat_cols
         return pd.Series(importances, index=all_cols).sort_values(ascending=False)
 
@@ -116,9 +120,9 @@ class DeviceClassifierPipeline:
 def train_models(
     layer3_path: Path = DEFAULT_LAYER3_PATH,
     models_dir: Path = DEFAULT_MODELS_DIR
-) -> Tuple[DeviceClassifierPipeline, DeviceClassifierPipeline]:
+) -> Tuple[DeviceClassifierPipeline, DeviceClassifierPipeline, DeviceClassifierPipeline]:
     """
-    Trains Model A and Model B on Layer 3 ML dataset and saves them to results/models/.
+    Trains Model A, Model B, and Model C and saves them to results/models/.
     """
     if not layer3_path.exists():
         raise FileNotFoundError(f"Layer 3 dataset not found at {layer3_path}")
@@ -128,20 +132,25 @@ def train_models(
         raise ValueError("Layer 3 dataset is empty! Cannot train models.")
 
     print("\n" + "=" * 80)
-    print("TRAINING RANDOM FOREST CLASSIFIERS (MODEL A & MODEL B)")
+    print("TRAINING ML CLASSIFIERS (MODEL A, MODEL B, MODEL C)")
     print("=" * 80)
 
     y = (df_ml["preferred_device"] == "gpu").astype(int).values
 
-    # Train Model A (Full Features)
-    print(f"Fitting Model A ({len(MODEL_A_FEATURES)} features)...")
-    model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, random_state=42)
+    # Train Model A (Full Features, Random Forest)
+    print(f"Fitting Model A (Random Forest, {len(MODEL_A_FEATURES)} features)...")
+    model_a = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="rf", random_state=42)
     model_a.fit(df_ml, y)
 
-    # Train Model B (Ablated: excludes workload_type and workload_domain)
-    print(f"Fitting Model B ({len(MODEL_B_FEATURES)} features)...")
-    model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, random_state=42)
+    # Train Model B (Ablated: excludes workload_type and workload_domain, Random Forest)
+    print(f"Fitting Model B (Random Forest Ablated, {len(MODEL_B_FEATURES)} features)...")
+    model_b = DeviceClassifierPipeline(MODEL_B_FEATURES, classifier_type="rf", random_state=42)
     model_b.fit(df_ml, y)
+
+    # Train Model C (Gradient Boosting, Full Features)
+    print(f"Fitting Model C (Gradient Boosting, {len(MODEL_A_FEATURES)} features)...")
+    model_c = DeviceClassifierPipeline(MODEL_A_FEATURES, classifier_type="gb", random_state=42)
+    model_c.fit(df_ml, y)
 
     # Save models
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -149,14 +158,14 @@ def train_models(
         pickle.dump(model_a, f)
     with open(models_dir / "model_b.pkl", "wb") as f:
         pickle.dump(model_b, f)
+    with open(models_dir / "model_c.pkl", "wb") as f:
+        pickle.dump(model_c, f)
 
     print(f"Models successfully serialized to: {models_dir}")
     print("\nModel A Feature Importances:")
     print(model_a.get_feature_importances())
-    print("\nModel B Feature Importances:")
-    print(model_b.get_feature_importances())
 
-    return model_a, model_b
+    return model_a, model_b, model_c
 
 
 if __name__ == "__main__":
