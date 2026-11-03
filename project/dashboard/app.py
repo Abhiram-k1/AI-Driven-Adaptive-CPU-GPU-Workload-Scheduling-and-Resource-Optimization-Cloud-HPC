@@ -24,6 +24,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from dashboard.api import DashboardAPI
+from profiler.workload_configs import WORKLOAD_CONFIGS
+from scheduler.strategy_comparison import StrategyComparison
 
 api = DashboardAPI()
 app = dash.Dash(__name__, title="AI CPU-GPU Cloud HPC Scheduler", suppress_callback_exceptions=True)
@@ -44,7 +46,7 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, Arial, sans-serif", "backg
     ]),
 
     # Main Tab Navigation
-    dcc.Tabs(id="main-tabs", value="tab-overview", style={"marginBottom": "20px"}, colors={"border": "#334155", "primary": "#38bdf8", "background": "#1e293b"}, children=[
+    dcc.Tabs(id="main-tabs", value="tab-telemetry", style={"marginBottom": "20px"}, colors={"border": "#334155", "primary": "#38bdf8", "background": "#1e293b"}, children=[
         dcc.Tab(label="1. Live Telemetry & Hardware", value="tab-telemetry", style={"padding": "12px", "fontWeight": "600"}),
         dcc.Tab(label="2. Rodinia Benchmarks", value="tab-benchmarks", style={"padding": "12px", "fontWeight": "600"}),
         dcc.Tab(label="3. ML Placement Models", value="tab-ml", style={"padding": "12px", "fontWeight": "600"}),
@@ -307,6 +309,12 @@ def handle_run_scheduler(n_clicks, workloads, mode):
     # Format output table
     display_cols = ["workload", "device_assigned", "predicted_device", "mean_s", "energy_joules", "correct_assignment"]
     df_disp = df[display_cols].copy()
+    if "mean_s" in df_disp.columns:
+        df_disp["mean_s"] = df_disp["mean_s"].round(3)
+    if "energy_joules" in df_disp.columns:
+        df_disp["energy_joules"] = df_disp["energy_joules"].round(2)
+    if "correct_assignment" in df_disp.columns:
+        df_disp["correct_assignment"] = df_disp["correct_assignment"].map({True: "YES", False: "NO"})
     df_disp.columns = ["Workload", "Assigned Device", "ML Recommended", "Runtime (s)", "Energy (Joules)", "ML Match"]
 
     weights = res["bayesian_weights"]
@@ -354,6 +362,15 @@ def render_strategies_tab():
     )
     fig_energy.update_layout(template="plotly_dark", paper_bgcolor="#1e293b", plot_bgcolor="#1e293b", showlegend=False)
 
+    df_disp = df.drop(columns=["assignment"], errors="ignore").copy()
+    if "makespan_s" in df_disp.columns:
+        df_disp["makespan_s"] = df_disp["makespan_s"].round(3)
+    if "total_energy_j" in df_disp.columns:
+        df_disp["total_energy_j"] = df_disp["total_energy_j"].round(2)
+    if "speedup_over_cpu" in df_disp.columns:
+        df_disp["speedup_over_cpu"] = df_disp["speedup_over_cpu"].round(2)
+    df_disp.columns = [c.replace("_", " ").title() for c in df_disp.columns]
+
     return html.Div([
         html.Div(style={"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "20px"}, children=[
             dcc.Graph(figure=fig_makespan),
@@ -361,8 +378,8 @@ def render_strategies_tab():
         ]),
         html.H3("Multi-Policy Benchmark Summary", style={"marginTop": "20px", "fontSize": "16px", "color": "#38bdf8"}),
         dash_table.DataTable(
-            data=df.to_dict("records"),
-            columns=[{"name": i, "id": i} for i in df.columns if i != "assignment"],
+            data=df_disp.to_dict("records"),
+            columns=[{"name": i, "id": i} for i in df_disp.columns],
             style_header={"backgroundColor": "#334155", "color": "#f8fafc", "fontWeight": "bold"},
             style_cell={"backgroundColor": "#1e293b", "color": "#cbd5e1", "fontSize": "13px", "padding": "8px"},
         )
