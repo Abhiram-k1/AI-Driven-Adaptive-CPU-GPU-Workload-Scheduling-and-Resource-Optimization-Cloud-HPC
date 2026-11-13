@@ -93,14 +93,17 @@ python scheduler/strategy_comparison.py
 ```
 
 ### D. Launch the Interactive Live Dashboard
-Launches the Plotly Dash application with live 2-second telemetry:
+Launches the Plotly Dash application with live 2-second telemetry, real-time benchmark execution, and progress tracking:
 ```bash
 python dashboard/run_dashboard.py
 # Open your browser and navigate to: http://localhost:8050
 ```
+- **In-Dashboard Benchmark Execution**: Click the **▶ Run Benchmark Suite** button directly in the dashboard header banner (or within Tab 2) to trigger an asynchronous background profiling run across all 19 Rodinia scientific workloads.
+- **Real-Time Progress & Telemetry**: Monitor the live animated progress bar, percentage completion badge, active kernel status, target slot allocation, elapsed runtime, and 19 workload status pills (`▶` active, `✓` complete).
+- **Graceful Control**: Includes a dedicated **⏹ Stop** button to halt active benchmark runs at any time.
 
 ### E. Run the Complete Automated Test Suite
-Executes all 36 unit and integration tests:
+Executes all 37 unit and integration tests:
 ```bash
 python -m pytest tests/ -v
 ```

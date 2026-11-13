@@ -45,6 +45,85 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, Arial, sans-serif", "backg
         ])
     ]),
 
+    # ==============================================================================
+    # BENCHMARK EXECUTION & LIVE PROGRESS PANEL (Persistent across all tabs)
+    # ==============================================================================
+    html.Div(
+        id="benchmark-control-panel",
+        style={
+            "backgroundColor": "#1e293b",
+            "padding": "16px 20px",
+            "borderRadius": "8px",
+            "border": "1px solid #334155",
+            "marginBottom": "20px",
+            "transition": "all 0.3s ease"
+        },
+        children=[
+            # Top Controls Row
+            html.Div(
+                style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "10px", "flexWrap": "wrap", "gap": "10px"},
+                children=[
+                    html.Div([
+                        html.Div(style={"display": "flex", "alignItems": "center", "gap": "10px"}, children=[
+                            html.Span("⚡", style={"fontSize": "18px"}),
+                            html.Span("Rodinia Empirical Benchmark Engine", style={"fontSize": "16px", "fontWeight": "700", "color": "#f8fafc"}),
+                            html.Span("19 Workloads", style={"backgroundColor": "#0f172a", "color": "#38bdf8", "padding": "2px 8px", "borderRadius": "4px", "fontSize": "11px", "fontWeight": "600", "border": "1px solid #334155"}),
+                        ]),
+                        html.Div(id="benchmark-status-text", style={"fontSize": "13px", "color": "#94a3b8", "marginTop": "4px"}),
+                    ]),
+                    html.Div(style={"display": "flex", "alignItems": "center", "gap": "10px"}, children=[
+                        html.Span(id="benchmark-progress-badge", style={"padding": "5px 14px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "12px"}),
+                        html.Button(
+                            "▶ Run Benchmark Suite",
+                            id="btn-run-benchmark",
+                            n_clicks=0,
+                            style={
+                                "backgroundColor": "#0284c7",
+                                "color": "#ffffff",
+                                "border": "none",
+                                "padding": "8px 18px",
+                                "borderRadius": "6px",
+                                "fontWeight": "700",
+                                "fontSize": "13px",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease"
+                            }
+                        ),
+                        html.Button(
+                            "⏹ Stop",
+                            id="btn-stop-benchmark",
+                            n_clicks=0,
+                            style={
+                                "backgroundColor": "#ef4444",
+                                "color": "#ffffff",
+                                "border": "none",
+                                "padding": "8px 14px",
+                                "borderRadius": "6px",
+                                "fontWeight": "700",
+                                "fontSize": "13px",
+                                "cursor": "pointer",
+                                "display": "none"
+                            }
+                        ),
+                    ])
+                ]
+            ),
+            # Progress Bar Container
+            html.Div(
+                style={"backgroundColor": "#0f172a", "borderRadius": "6px", "height": "8px", "overflow": "hidden", "marginBottom": "12px"},
+                children=[
+                    html.Div(
+                        id="benchmark-progress-bar",
+                        style={"width": "0%", "height": "100%", "backgroundColor": "#38bdf8", "transition": "width 0.4s ease-in-out"}
+                    )
+                ]
+            ),
+            # Workload Pills
+            html.Div(id="benchmark-pills-container", style={"display": "flex", "flexWrap": "wrap", "gap": "6px"}),
+            dcc.Store(id="benchmark-action-feedback"),
+        ]
+    ),
+
     # Main Tab Navigation
     dcc.Tabs(id="main-tabs", value="tab-telemetry", style={"marginBottom": "20px"}, colors={"border": "#334155", "primary": "#38bdf8", "background": "#1e293b"}, children=[
         dcc.Tab(label="1. Live Telemetry & Hardware", value="tab-telemetry", style={"padding": "12px", "fontWeight": "600"}),
@@ -59,6 +138,9 @@ app.layout = html.Div(style={"fontFamily": "Segoe UI, Arial, sans-serif", "backg
 
     # Interval timer for live resource polling (2 seconds)
     dcc.Interval(id="telemetry-interval", interval=2000, n_intervals=0),
+
+    # Interval timer for benchmark polling (1.2 seconds)
+    dcc.Interval(id="benchmark-interval", interval=1200, n_intervals=0),
 ])
 
 
@@ -77,14 +159,16 @@ def render_telemetry_tab():
                 html.H3("GPU Hardware Telemetry Probe", style={"margin": "0 0 15px 0", "fontSize": "16px", "color": "#38bdf8"}),
                 html.Div(id="gpu-status-card"),
             ]),
-        ])
+        ]),
+        html.Div(id="live-telemetry-table-container", style={"marginTop": "20px"}),
     ])
 
 
 @app.callback(
     [Output("live-telemetry-metrics", "children"),
      Output("cpu-cores-graph", "figure"),
-     Output("gpu-status-card", "children")],
+     Output("gpu-status-card", "children"),
+     Output("live-telemetry-table-container", "children")],
     [Input("telemetry-interval", "n_intervals")],
     [State("main-tabs", "value")]
 )
@@ -95,64 +179,10 @@ def update_live_telemetry(n, current_tab):
     snap = api.get_live_resources()
     cpu = snap["cpu"]
     gpu = snap["gpu"]
-
-    # 1. Live 19-Workload Benchmark Stream Panel
     bench = api.get_live_benchmark_status()
-    is_running = bench.get("is_running", False)
-    completed_cnt = bench.get("completed_count", 0)
-    total_cnt = bench.get("total_workloads", 19)
-    pct = bench.get("progress_percent", 0.0)
-    cur_name = bench.get("current_workload_name", "None")
-    cur_domain = bench.get("current_workload_domain", "General")
-    cur_dev = bench.get("current_device", "GPU")
-    cur_desc = bench.get("current_desc", "")
-    elapsed = bench.get("overall_elapsed_s", 0.0)
     completed_list = bench.get("completed_workloads", [])
 
-    all_names = ['bfs', 'cfd', 'hotspot', 'lud', 'kmeans', 'srad', 'nn', 'nw', 'backprop', 'pathfinder', 'particlefilter', 'heartwall', 'b_tree', 'leukocyte', 'streamcluster', 'hybridsort', 'lavaMD', 'gaussian', 'mummergpu']
-    completed_names = {c["name"] for c in completed_list}
-
-    if is_running:
-        badge_style = {"backgroundColor": "#065f46", "color": "#34d399", "padding": "5px 14px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "12px", "border": "1px solid #059669"}
-        header_text = f"LIVE RODINIA STREAM: [{completed_cnt + 1}/{total_cnt}] {cur_name.upper()} ({cur_domain})"
-        status_sub = f"Active Kernel: {cur_desc} | Dispatched to: {cur_dev} | Elapsed: {elapsed:.1f}s"
-    elif completed_cnt >= total_cnt and total_cnt > 0:
-        badge_style = {"backgroundColor": "#1e3a8a", "color": "#60a5fa", "padding": "5px 14px", "borderRadius": "6px", "fontWeight": "700", "fontSize": "12px", "border": "1px solid #2563eb"}
-        header_text = f"19/19 RODINIA WORKLOADS PROFILED SUCCESSFULLY ({elapsed:.1f}s)"
-        status_sub = "Full 19-workload scientific suite profiled across NVIDIA RTX 5050 GPU and Host CPU"
-    else:
-        badge_style = {"backgroundColor": "#334155", "color": "#94a3b8", "padding": "5px 14px", "borderRadius": "6px", "fontWeight": "600", "fontSize": "12px"}
-        header_text = "Rodinia 19-Workload Scientific Suite Ready"
-        status_sub = "19 Scientific Workloads configured across GPU (CUDA) and CPU (16 Cores)"
-
-    pills = []
-    for w in all_names:
-        if w == cur_name and is_running:
-            p_style = {"backgroundColor": "#0284c7", "color": "#ffffff", "padding": "4px 9px", "borderRadius": "4px", "fontSize": "11px", "fontWeight": "700", "border": "1px solid #38bdf8"}
-            p_text = f"▶ {w.upper()}"
-        elif w in completed_names:
-            p_style = {"backgroundColor": "#064e3b", "color": "#34d399", "padding": "4px 9px", "borderRadius": "4px", "fontSize": "11px", "fontWeight": "600"}
-            p_text = f"✓ {w}"
-        else:
-            p_style = {"backgroundColor": "#1e293b", "color": "#64748b", "padding": "4px 9px", "borderRadius": "4px", "fontSize": "11px", "border": "1px solid #334155"}
-            p_text = w
-        pills.append(html.Span(p_text, style=p_style))
-
-    banner_card = html.Div(style={"backgroundColor": "#1e293b", "padding": "16px 20px", "borderRadius": "8px", "border": "1px solid #38bdf8" if is_running else "1px solid #334155", "marginBottom": "20px"}, children=[
-        html.Div(style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "10px"}, children=[
-            html.Div([
-                html.Span(header_text, style={"fontSize": "16px", "fontWeight": "700", "color": "#f8fafc", "marginRight": "12px"}),
-                html.Span(status_sub, style={"fontSize": "12px", "color": "#94a3b8"}),
-            ]),
-            html.Span(f"{pct:.1f}% ({completed_cnt}/{total_cnt})", style=badge_style),
-        ]),
-        html.Div(style={"backgroundColor": "#0f172a", "borderRadius": "6px", "height": "8px", "overflow": "hidden", "marginBottom": "12px"}, children=[
-            html.Div(style={"width": f"{pct}%", "height": "100%", "backgroundColor": "#38bdf8" if is_running else "#10b981", "transition": "width 0.4s ease-in-out"})
-        ]),
-        html.Div(style={"display": "flex", "flexWrap": "wrap", "gap": "6px"}, children=pills)
-    ])
-
-    # 2. Metric Cards
+    # 1. Metric Cards
     metrics_row = html.Div(style={"display": "grid", "gridTemplateColumns": "repeat(4, 1fr)", "gap": "15px"}, children=[
         html.Div(style={"backgroundColor": "#1e293b", "padding": "18px", "borderRadius": "8px", "border": "1px solid #334155"}, children=[
             html.Div("Overall CPU Utilization", style={"color": "#94a3b8", "fontSize": "12px"}),
@@ -177,9 +207,7 @@ def update_live_telemetry(n, current_tab):
         ]),
     ])
 
-    combined_telemetry = html.Div([banner_card, metrics_row])
-
-    # 3. CPU per-core Bar Chart
+    # 2. CPU per-core Bar Chart
     core_labels = [f"Core {i}" for i in range(len(cpu["per_cpu_percent"]))]
     fig_cores = px.bar(
         x=core_labels,
@@ -197,7 +225,7 @@ def update_live_telemetry(n, current_tab):
         coloraxis_showscale=False
     )
 
-    # 4. GPU Card
+    # 3. GPU Card
     if gpu["gpu_available"]:
         util = gpu.get('gpu_utilization_percent', 0.0) or 0.0
         mem_used = gpu.get('gpu_memory_used_mb', 0.0) or 0.0
@@ -246,10 +274,55 @@ def update_live_telemetry(n, current_tab):
     else:
         gpu_card = html.Div(style={"padding": "15px", "backgroundColor": "#334155", "borderRadius": "6px"}, children=[
             html.Div("GPU_MONITORING_UNAVAILABLE", style={"color": "#f87171", "fontWeight": "700", "fontSize": "15px", "marginBottom": "8px"}),
-            html.P("No physical NVIDIA GPU driver was detected on this local host.", style={"color": "#cbd5e1", "fontSize": "13px", "margin": "0 0 10px 0"}),
+            html.P("No physical NVIDIA GPU driver was detected on this local host. Host CPU multithreading active.", style={"color": "#cbd5e1", "fontSize": "13px", "margin": "0 0 10px 0"}),
         ])
 
-    return combined_telemetry, fig_cores, gpu_card
+    # 4. Live Completed Workloads Stream Table
+    if completed_list:
+        df_comp = pd.DataFrame(completed_list)
+        cols_order = ["index", "name", "domain", "device", "runtime_ms", "gpu_util", "vram_mb", "timestamp"]
+        existing_cols = [c for c in cols_order if c in df_comp.columns]
+        df_comp = df_comp[existing_cols]
+        rename_map = {
+            "index": "#",
+            "name": "Workload",
+            "domain": "Domain",
+            "device": "Target Slot",
+            "runtime_ms": "Runtime (ms)",
+            "gpu_util": "GPU Util (%)",
+            "vram_mb": "VRAM (MB)",
+            "timestamp": "Completed At"
+        }
+        df_comp = df_comp.rename(columns=rename_map)
+
+        table_div = html.Div(style={"backgroundColor": "#1e293b", "padding": "20px", "borderRadius": "8px", "border": "1px solid #334155"}, children=[
+            html.Div(style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "12px"}, children=[
+                html.H3("Live Benchmark Telemetry Stream Log", style={"margin": "0", "fontSize": "16px", "color": "#38bdf8"}),
+                html.Span(f"{len(completed_list)} / 19 Workloads Profiled", style={"backgroundColor": "#065f46", "color": "#34d399", "padding": "4px 10px", "borderRadius": "4px", "fontSize": "11px", "fontWeight": "700"}),
+            ]),
+            dash_table.DataTable(
+                data=df_comp.to_dict("records"),
+                columns=[{"name": c, "id": c} for c in df_comp.columns],
+                style_table={"overflowX": "auto"},
+                style_header={"backgroundColor": "#334155", "color": "#f8fafc", "fontWeight": "bold"},
+                style_cell={"backgroundColor": "#1e293b", "color": "#cbd5e1", "fontSize": "12px", "padding": "8px"},
+                style_data_conditional=[
+                    {
+                        "if": {"filter_query": "{Target Slot} = 'GPU' || {Target Slot} = 'gpu'"},
+                        "color": "#34d399",
+                        "fontWeight": "600"
+                    }
+                ],
+                page_size=10
+            )
+        ])
+    else:
+        table_div = html.Div(style={"backgroundColor": "#1e293b", "padding": "20px", "borderRadius": "8px", "border": "1px solid #334155", "textAlign": "center", "color": "#94a3b8"}, children=[
+            html.Div("No active benchmark profiling results in current session.", style={"fontSize": "14px", "fontWeight": "600", "color": "#f8fafc", "marginBottom": "6px"}),
+            html.Div("Click the 'Run Benchmark Suite' button above to execute all 19 Rodinia scientific workloads live.", style={"fontSize": "12px", "color": "#94a3b8"})
+        ])
+
+    return metrics_row, fig_cores, gpu_card, table_div
 
 
 # ==============================================================================
@@ -258,6 +331,38 @@ def update_live_telemetry(n, current_tab):
 def render_benchmarks_tab():
     benchmarks = api.get_benchmark_summary()
     df = pd.DataFrame(benchmarks)
+
+    bench = api.get_live_benchmark_status()
+    is_running = bench.get("is_running", False)
+    btn_tab2_text = "⏳ Benchmark Running in Background..." if is_running else "▶ Re-run Rodinia Benchmarks"
+    btn_tab2_disabled = is_running
+    btn_tab2_bg = "#d97706" if is_running else "#0284c7"
+
+    header_bar = html.Div(
+        style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "marginBottom": "20px", "flexWrap": "wrap", "gap": "10px"},
+        children=[
+            html.Div([
+                html.H3("19-Workload Empirical Profile Comparison", style={"margin": "0", "fontSize": "18px", "color": "#38bdf8"}),
+                html.P("Compare empirical CPU vs GPU execution times, speedup factors, and hardware allocation across all 19 Rodinia workloads.", style={"margin": "4px 0 0 0", "color": "#94a3b8", "fontSize": "13px"}),
+            ]),
+            html.Button(
+                btn_tab2_text,
+                id="btn-run-benchmark-tab2",
+                disabled=btn_tab2_disabled,
+                n_clicks=0,
+                style={
+                    "backgroundColor": btn_tab2_bg,
+                    "color": "#ffffff",
+                    "border": "none",
+                    "padding": "9px 18px",
+                    "borderRadius": "6px",
+                    "fontWeight": "700",
+                    "fontSize": "13px",
+                    "cursor": "not-allowed" if is_running else "pointer"
+                }
+            )
+        ]
+    )
 
     fig_time = px.bar(
         df,
@@ -284,6 +389,7 @@ def render_benchmarks_tab():
     fig_speedup.update_layout(template="plotly_dark", paper_bgcolor="#1e293b", plot_bgcolor="#1e293b")
 
     return html.Div([
+        header_bar,
         html.Div(style={"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "20px"}, children=[
             dcc.Graph(figure=fig_time),
             dcc.Graph(figure=fig_speedup),
@@ -544,6 +650,233 @@ def render_tab_content(tab):
     elif tab == "tab-strategies":
         return render_strategies_tab()
     return render_telemetry_tab()
+
+
+# ==============================================================================
+# BENCHMARK ACTIONS & PROGRESS CALLBACKS
+# ==============================================================================
+@app.callback(
+    Output("benchmark-action-feedback", "data"),
+    [Input("btn-run-benchmark", "n_clicks"),
+     Input("btn-stop-benchmark", "n_clicks"),
+     Input("btn-run-benchmark-tab2", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_benchmark_actions(btn_run, btn_stop, btn_tab2):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if trigger_id in ["btn-run-benchmark", "btn-run-benchmark-tab2"]:
+        res = api.start_benchmark_run()
+        return res
+    elif trigger_id == "btn-stop-benchmark":
+        res = api.stop_benchmark_run()
+        return res
+    raise dash.exceptions.PreventUpdate
+
+
+@app.callback(
+    [Output("btn-run-benchmark", "children"),
+     Output("btn-run-benchmark", "disabled"),
+     Output("btn-run-benchmark", "style"),
+     Output("btn-stop-benchmark", "style"),
+     Output("benchmark-progress-bar", "style"),
+     Output("benchmark-progress-badge", "children"),
+     Output("benchmark-progress-badge", "style"),
+     Output("benchmark-status-text", "children"),
+     Output("benchmark-pills-container", "children"),
+     Output("benchmark-control-panel", "style")],
+    [Input("benchmark-interval", "n_intervals")]
+)
+def update_benchmark_progress(n):
+    bench = api.get_live_benchmark_status()
+    is_running = bench.get("is_running", False)
+    completed_cnt = bench.get("completed_count", 0)
+    total_cnt = bench.get("total_workloads", 19)
+    pct = min(100.0, max(0.0, float(bench.get("progress_percent", 0.0))))
+    cur_name = bench.get("current_workload_name", "None")
+    cur_domain = bench.get("current_workload_domain", "General")
+    cur_dev = bench.get("current_device", "GPU")
+    cur_desc = bench.get("current_desc", "")
+    elapsed = bench.get("overall_elapsed_s", 0.0)
+    completed_list = bench.get("completed_workloads", [])
+
+    all_names = [
+        'bfs', 'cfd', 'hotspot', 'lud', 'kmeans', 'srad', 'nn', 'nw',
+        'backprop', 'pathfinder', 'particlefilter', 'heartwall', 'b_tree',
+        'leukocyte', 'streamcluster', 'hybridsort', 'lavaMD', 'gaussian', 'mummergpu'
+    ]
+    completed_names = {c["name"] for c in completed_list}
+
+    # Workload Pills
+    pills = []
+    for w in all_names:
+        if w == cur_name and is_running:
+            p_style = {
+                "backgroundColor": "#0284c7",
+                "color": "#ffffff",
+                "padding": "4px 9px",
+                "borderRadius": "4px",
+                "fontSize": "11px",
+                "fontWeight": "700",
+                "border": "1px solid #38bdf8",
+                "boxShadow": "0 0 8px rgba(56, 189, 248, 0.5)"
+            }
+            p_text = f"▶ {w.upper()}"
+        elif w in completed_names:
+            p_style = {
+                "backgroundColor": "#064e3b",
+                "color": "#34d399",
+                "padding": "4px 9px",
+                "borderRadius": "4px",
+                "fontSize": "11px",
+                "fontWeight": "600",
+                "border": "1px solid #059669"
+            }
+            p_text = f"✓ {w}"
+        else:
+            p_style = {
+                "backgroundColor": "#0f172a",
+                "color": "#64748b",
+                "padding": "4px 9px",
+                "borderRadius": "4px",
+                "fontSize": "11px",
+                "border": "1px solid #334155"
+            }
+            p_text = w
+        pills.append(html.Span(p_text, style=p_style))
+
+    panel_style = {
+        "backgroundColor": "#1e293b",
+        "padding": "16px 20px",
+        "borderRadius": "8px",
+        "border": "1px solid #38bdf8" if is_running else "1px solid #334155",
+        "marginBottom": "20px",
+        "boxShadow": "0 0 15px rgba(56, 189, 248, 0.2)" if is_running else "0 4px 6px -1px rgba(0, 0, 0, 0.3)",
+        "transition": "all 0.3s ease"
+    }
+
+    if is_running:
+        btn_text = f"⏳ Running: {pct:.0f}% [{completed_cnt + 1}/{total_cnt} {cur_name.upper()}]"
+        btn_disabled = True
+        btn_style = {
+            "backgroundColor": "#d97706",
+            "color": "#ffffff",
+            "border": "none",
+            "padding": "8px 18px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "13px",
+            "cursor": "not-allowed",
+            "opacity": "0.9"
+        }
+        stop_style = {
+            "backgroundColor": "#ef4444",
+            "color": "#ffffff",
+            "border": "none",
+            "padding": "8px 14px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "13px",
+            "cursor": "pointer",
+            "display": "inline-block"
+        }
+        badge_text = f"RUNNING: {pct:.1f}% ({completed_cnt}/{total_cnt})"
+        badge_style = {
+            "backgroundColor": "#065f46",
+            "color": "#34d399",
+            "padding": "5px 14px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "12px",
+            "border": "1px solid #059669"
+        }
+        status_text = f"Active Kernel: {cur_desc} | Dispatched to: {cur_dev} | Workload [{completed_cnt + 1}/{total_cnt}] | Elapsed: {elapsed:.1f}s"
+        bar_style = {
+            "width": f"{pct}%",
+            "height": "100%",
+            "backgroundColor": "#38bdf8",
+            "boxShadow": "0 0 10px #38bdf8",
+            "transition": "width 0.4s ease-in-out"
+        }
+    elif completed_cnt >= total_cnt and total_cnt > 0:
+        btn_text = "↻ Re-run Benchmark Suite"
+        btn_disabled = False
+        btn_style = {
+            "backgroundColor": "#0284c7",
+            "color": "#ffffff",
+            "border": "none",
+            "padding": "8px 18px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "13px",
+            "cursor": "pointer"
+        }
+        stop_style = {"display": "none"}
+        badge_text = f"COMPLETED: 100% ({total_cnt}/{total_cnt})"
+        badge_style = {
+            "backgroundColor": "#1e3a8a",
+            "color": "#60a5fa",
+            "padding": "5px 14px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "12px",
+            "border": "1px solid #2563eb"
+        }
+        status_text = f"All {total_cnt} Rodinia scientific workloads successfully profiled in {elapsed:.1f}s across GPU CUDA and 16-Core Host CPU."
+        bar_style = {
+            "width": "100%",
+            "height": "100%",
+            "backgroundColor": "#10b981",
+            "boxShadow": "0 0 8px #10b981",
+            "transition": "width 0.4s ease-in-out"
+        }
+    else:
+        btn_text = "▶ Run Benchmark Suite"
+        btn_disabled = False
+        btn_style = {
+            "backgroundColor": "#0284c7",
+            "color": "#ffffff",
+            "border": "none",
+            "padding": "8px 18px",
+            "borderRadius": "6px",
+            "fontWeight": "700",
+            "fontSize": "13px",
+            "cursor": "pointer"
+        }
+        stop_style = {"display": "none"}
+        badge_text = "READY: 19 Workloads"
+        badge_style = {
+            "backgroundColor": "#334155",
+            "color": "#94a3b8",
+            "padding": "5px 14px",
+            "borderRadius": "6px",
+            "fontWeight": "600",
+            "fontSize": "12px"
+        }
+        status_text = "19 Rodinia scientific workloads configured across NVIDIA GPU (CUDA) and Host CPU (16 Cores). Click 'Run Benchmark Suite' to profile."
+        bar_style = {
+            "width": "0%",
+            "height": "100%",
+            "backgroundColor": "#38bdf8",
+            "transition": "width 0.4s ease-in-out"
+        }
+
+    return (
+        btn_text,
+        btn_disabled,
+        btn_style,
+        stop_style,
+        bar_style,
+        badge_text,
+        badge_style,
+        status_text,
+        pills,
+        panel_style
+    )
 
 
 if __name__ == "__main__":

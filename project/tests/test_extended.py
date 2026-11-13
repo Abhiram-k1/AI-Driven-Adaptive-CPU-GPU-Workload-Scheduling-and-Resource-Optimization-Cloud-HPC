@@ -238,6 +238,22 @@ class TestDashboardAPI(unittest.TestCase):
         catalog = self.api.get_workload_catalog()
         self.assertEqual(len(catalog), 19)
 
+    def test_benchmark_lifecycle(self):
+        status = self.api.get_live_benchmark_status()
+        self.assertIn("is_running", status)
+        self.assertIn("total_workloads", status)
+        self.assertIn("completed_workloads", status)
+
+        # Test start and stop
+        start_res = self.api.start_benchmark_run()
+        self.assertIn(start_res.get("status"), ["started", "already_running"])
+        self.assertTrue(self.api.is_benchmark_running())
+
+        # Stop benchmark
+        stop_res = self.api.stop_benchmark_run()
+        self.assertIn(stop_res.get("status"), ["stopped", "not_running"])
+        self.assertFalse(self.api.is_benchmark_running())
+
 
 if __name__ == "__main__":
     unittest.main()

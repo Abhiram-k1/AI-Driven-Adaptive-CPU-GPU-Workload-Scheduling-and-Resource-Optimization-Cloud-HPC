@@ -11,10 +11,12 @@ All returned telemetry and metrics are strictly grounded in:
 
 import sys
 import json
+import subprocess
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
+import psutil
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -44,6 +46,7 @@ class DashboardAPI:
         self.metrics_path = PROJECT_ROOT / "results" / "metrics" / "model_evaluation_metrics.json"
         self.predictions_path = PROJECT_ROOT / "results" / "predictions" / "lowo_predictions.csv"
         self.live_status_path = PROJECT_ROOT / "results" / "live_benchmark_status.json"
+        self._benchmark_proc: Optional[subprocess.Popen] = None
 
     def get_live_resources(self) -> Dict[str, Any]:
         """Fetch real-time CPU, RAM, and GPU snapshot."""
@@ -61,7 +64,13 @@ class DashboardAPI:
             }
         try:
             with open(self.live_status_path, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if data.get("is_running", False):
+                    pid = data.get("pid")
+                    if pid and not psutil.pid_exists(pid):
+                        data["is_running"] = False
+                        data["status_text"] = "Process completed"
+                return data
         except Exception:
             return {
                 "is_running": False,
@@ -70,6 +79,102 @@ class DashboardAPI:
                 "completed_workloads": [],
                 "status_text": "Ready for Execution"
             }
+
+    def start_benchmark_run(self) -> Dict[str, Any]:
+        """Start benchmark runner in background process if not already running."""
+        # 1. Check if subprocess is actively running
+        if self._benchmark_proc is not None and self._benchmark_proc.poll() is None:
+            return {"status": "already_running", "message": "Benchmark is already running."}
+
+        # 2. Check if status file reports running and pid is alive
+        status = self.get_live_benchmark_status()
+        if status.get("is_running", False):
+            pid = status.get("pid")
+            if pid and psutil.pid_exists(pid):
+                return {"status": "already_running", "message": f"Benchmark is already running (PID {pid})."}
+
+        # 3. Launch benchmark_runner.py in background
+        script_path = PROJECT_ROOT / "benchmark_runner.py"
+        try:
+            self._benchmark_proc = subprocess.Popen(
+                [sys.executable, str(script_path)],
+                cwd=str(PROJECT_ROOT),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            # Immediate state update for zero UI lag
+            start_state = {
+                "is_running": True,
+                "pid": self._benchmark_proc.pid,
+                "total_workloads": 19,
+                "completed_count": 0,
+                "progress_percent": 0.0,
+                "current_workload_name": "bfs",
+                "current_workload_domain": "Graph Traversal",
+                "current_device": "GPU",
+                "current_desc": "Breadth-First Search on 1M node graph",
+                "completed_workloads": [],
+                "overall_elapsed_s": 0.0,
+                "status_text": "Benchmark Running..."
+            }
+            try:
+                with open(self.live_status_path, "w", encoding="utf-8") as f:
+                    json.dump(start_state, f, indent=2)
+            except Exception:
+                pass
+
+            return {
+                "status": "started",
+                "pid": self._benchmark_proc.pid,
+                "message": f"Benchmark suite started in background (PID {self._benchmark_proc.pid})."
+            }
+        except Exception as e:
+            return {"status": "error", "message": f"Failed to start benchmark: {str(e)}"}
+
+    def stop_benchmark_run(self) -> Dict[str, Any]:
+        """Terminate active benchmark subprocess if running."""
+        terminated = False
+        if self._benchmark_proc is not None and self._benchmark_proc.poll() is None:
+            try:
+                self._benchmark_proc.terminate()
+                self._benchmark_proc.wait(timeout=2)
+                terminated = True
+            except Exception:
+                try:
+                    self._benchmark_proc.kill()
+                    terminated = True
+                except Exception:
+                    pass
+
+        status = self.get_live_benchmark_status()
+        pid = status.get("pid")
+        if pid and psutil.pid_exists(pid):
+            try:
+                p = psutil.Process(pid)
+                p.terminate()
+                terminated = True
+            except Exception:
+                pass
+
+        status["is_running"] = False
+        status["status_text"] = "Benchmark stopped by user"
+        try:
+            with open(self.live_status_path, "w", encoding="utf-8") as f:
+                json.dump(status, f, indent=2)
+        except Exception:
+            pass
+
+        return {
+            "status": "stopped" if terminated else "not_running",
+            "message": "Benchmark execution stopped." if terminated else "No active benchmark found."
+        }
+
+    def is_benchmark_running(self) -> bool:
+        """Check if benchmark is actively executing."""
+        if self._benchmark_proc is not None and self._benchmark_proc.poll() is None:
+            return True
+        status = self.get_live_benchmark_status()
+        return status.get("is_running", False)
 
     def get_benchmark_summary(self) -> List[Dict[str, Any]]:
         """Fetch benchmark rows for all 19 Rodinia workloads."""

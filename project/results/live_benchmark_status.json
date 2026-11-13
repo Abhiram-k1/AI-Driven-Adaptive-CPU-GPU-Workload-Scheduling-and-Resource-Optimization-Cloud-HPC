@@ -1,5 +1,6 @@
 {
   "is_running": false,
+  "pid": 10160,
   "total_workloads": 19,
   "completed_count": 19,
   "progress_percent": 100.0,
@@ -13,192 +14,211 @@
       "name": "bfs",
       "domain": "Graph Traversal",
       "device": "GPU",
-      "runtime_ms": 2669.4,
-      "vram_mb": 220.0,
-      "gpu_util": 55.0,
-      "timestamp": "23:03:10"
+      "runtime_ms": 2192.0,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 61.7,
+      "timestamp": "10:41:19"
     },
     {
       "index": 2,
       "name": "cfd",
       "domain": "Fluid Dynamics",
       "device": "GPU",
-      "runtime_ms": 2821.5,
-      "vram_mb": 244.0,
-      "gpu_util": 1.0,
-      "timestamp": "23:03:13"
+      "runtime_ms": 5983.5,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.6,
+      "timestamp": "10:41:25"
     },
     {
       "index": 3,
       "name": "hotspot",
       "domain": "Thermal Simulation",
       "device": "GPU",
-      "runtime_ms": 1951.6,
-      "vram_mb": 228.0,
-      "gpu_util": 42.0,
-      "timestamp": "23:03:16"
+      "runtime_ms": 2647.6,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.8,
+      "timestamp": "10:41:28"
     },
     {
       "index": 4,
       "name": "lud",
       "domain": "Linear Algebra",
       "device": "GPU",
-      "runtime_ms": 2767.2,
-      "vram_mb": 248.0,
-      "gpu_util": 57.0,
-      "timestamp": "23:03:19"
+      "runtime_ms": 3077.8,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 98.6,
+      "timestamp": "10:41:32"
     },
     {
       "index": 5,
       "name": "kmeans",
       "domain": "Clustering",
       "device": "CPU",
-      "runtime_ms": 1333.9,
-      "vram_mb": 194.0,
-      "gpu_util": 0.0,
-      "timestamp": "23:03:21"
+      "runtime_ms": 2207.9,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 100.0,
+      "timestamp": "10:41:34"
     },
     {
       "index": 6,
       "name": "srad",
       "domain": "Image Processing",
       "device": "GPU",
-      "runtime_ms": 1729.0,
-      "vram_mb": 224.0,
-      "gpu_util": 55.0,
-      "timestamp": "23:03:23"
+      "runtime_ms": 1918.8,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 94.9,
+      "timestamp": "10:41:37"
     },
     {
       "index": 7,
       "name": "nn",
       "domain": "Nearest Neighbor",
       "device": "CPU",
-      "runtime_ms": 517.4,
-      "vram_mb": 194.0,
-      "gpu_util": 0.0,
-      "timestamp": "23:03:24"
+      "runtime_ms": 2036.7,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 98.5,
+      "timestamp": "10:41:39"
     },
     {
       "index": 8,
       "name": "nw",
       "domain": "Bioinformatics",
       "device": "GPU",
-      "runtime_ms": 1491.0,
-      "vram_mb": 224.0,
-      "gpu_util": 68.0,
-      "timestamp": "23:03:26"
+      "runtime_ms": 1688.7,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 96.3,
+      "timestamp": "10:41:41"
     },
     {
       "index": 9,
       "name": "backprop",
       "domain": "Machine Learning",
       "device": "GPU",
-      "runtime_ms": 3103.7,
-      "vram_mb": 256.0,
-      "gpu_util": 58.0,
-      "timestamp": "23:03:30"
+      "runtime_ms": 3700.5,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.4,
+      "timestamp": "10:41:45"
     },
     {
       "index": 10,
       "name": "pathfinder",
       "domain": "Grid Traversal",
       "device": "GPU",
-      "runtime_ms": 1771.3,
-      "vram_mb": 224.0,
-      "gpu_util": 56.0,
-      "timestamp": "23:03:32"
+      "runtime_ms": 1943.6,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 97.7,
+      "timestamp": "10:41:48"
     },
     {
       "index": 11,
       "name": "particlefilter",
       "domain": "Monte Carlo",
       "device": "GPU",
-      "runtime_ms": 1999.3,
-      "vram_mb": 234.0,
-      "gpu_util": 52.0,
-      "timestamp": "23:03:35"
+      "runtime_ms": 2664.7,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 100.0,
+      "timestamp": "10:41:51"
     },
     {
       "index": 12,
       "name": "heartwall",
       "domain": "Medical Imaging",
       "device": "GPU",
-      "runtime_ms": 2620.8,
-      "vram_mb": 240.0,
-      "gpu_util": 55.0,
-      "timestamp": "23:03:38"
+      "runtime_ms": 2569.0,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 98.2,
+      "timestamp": "10:41:54"
     },
     {
       "index": 13,
       "name": "b_tree",
       "domain": "Data Structures",
       "device": "CPU",
-      "runtime_ms": 1221.7,
-      "vram_mb": 194.0,
-      "gpu_util": 0.0,
-      "timestamp": "23:03:40"
+      "runtime_ms": 2033.7,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 98.5,
+      "timestamp": "10:41:56"
     },
     {
       "index": 14,
       "name": "leukocyte",
       "domain": "Cell Detection",
       "device": "GPU",
-      "runtime_ms": 1963.0,
-      "vram_mb": 232.0,
-      "gpu_util": 68.0,
-      "timestamp": "23:03:43"
+      "runtime_ms": 2058.8,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.8,
+      "timestamp": "10:41:59"
     },
     {
       "index": 15,
       "name": "streamcluster",
       "domain": "Stream Mining",
       "device": "CPU",
-      "runtime_ms": 1076.1,
-      "vram_mb": 194.0,
-      "gpu_util": 1.0,
-      "timestamp": "23:03:44"
+      "runtime_ms": 2519.3,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.8,
+      "timestamp": "10:42:02"
     },
     {
       "index": 16,
       "name": "hybridsort",
       "domain": "Parallel Sorting",
       "device": "GPU",
-      "runtime_ms": 2772.4,
-      "vram_mb": 252.0,
-      "gpu_util": 79.0,
-      "timestamp": "23:03:48"
+      "runtime_ms": 2963.1,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 97.2,
+      "timestamp": "10:42:05"
     },
     {
       "index": 17,
       "name": "lavaMD",
       "domain": "Molecular Dynamics",
       "device": "GPU",
-      "runtime_ms": 3020.7,
-      "vram_mb": 262.0,
-      "gpu_util": 78.0,
-      "timestamp": "23:03:51"
+      "runtime_ms": 2497.1,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 99.5,
+      "timestamp": "10:42:08"
     },
     {
       "index": 18,
       "name": "gaussian",
       "domain": "Linear Algebra",
       "device": "GPU",
-      "runtime_ms": 3073.4,
-      "vram_mb": 256.0,
-      "gpu_util": 66.0,
-      "timestamp": "23:03:55"
+      "runtime_ms": 2971.9,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 93.3,
+      "timestamp": "10:42:11"
     },
     {
       "index": 19,
       "name": "mummergpu",
       "domain": "Genomics",
       "device": "GPU",
-      "runtime_ms": 3080.4,
-      "vram_mb": 260.0,
-      "gpu_util": 70.0,
-      "timestamp": "23:03:58"
+      "runtime_ms": 2580.7,
+      "vram_mb": 0,
+      "gpu_util": 0,
+      "cpu_util": 100.0,
+      "timestamp": "10:42:14"
     }
   ],
-  "overall_elapsed_s": 51.9,
+  "overall_elapsed_s": 58.2,
   "status_text": "19/19 Workloads Completed Successfully"
 }
